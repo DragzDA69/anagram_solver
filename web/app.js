@@ -45,7 +45,7 @@ document.querySelectorAll(".seg button").forEach((b) => {
   });
 });
 
-for (const id of ["length", "min", "max", "pattern", "limit", "dict", "exact"]) {
+for (const id of ["length", "min", "max", "pattern", "limit", "exact"]) {
   $(id).addEventListener("input", () => { reflectDisabled(); schedule(); });
 }
 
@@ -108,7 +108,6 @@ async function solve() {
     max: $("max").value.trim(),
     pattern: $("pattern").value.trim(),
     limit: $("limit").value.trim(),
-    dict: $("dict").value,
     exact: $("exact").checked,
   };
 
@@ -201,24 +200,12 @@ function chip(word) {
 
 // --- startup --------------------------------------------------------------
 
-(async function init() {
+(function init() {
   /* Options start open on desktop, collapsed under the "md" width (768px). */
   if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
   syncHead();
   reflectDisabled();
-  try {
-    const meta = await (await fetch("/api/dicts")).json();
-    const sel = $("dict");
-    for (const d of meta.dicts) {
-      const o = document.createElement("option");
-      o.value = d.name;
-      o.textContent = `${d.name} (${d.words.toLocaleString()})`;
-      if (d.name === meta.active) o.selected = true;
-      sel.append(o);
-    }
-    $("dictInfo").textContent = `Solves anagrams using the selected dictionary. Handles wildcard [ ? * ] characters.`;
-  } catch {
-    flash("Could not reach the local server.", true);
-  }
+  $("dictInfo").textContent =
+    "Solves anagrams from the bundled word list. Handles wildcard [ ? * ] characters.";
   results.innerHTML = '<p class="empty">Type the board letters to begin.</p>';
 })();

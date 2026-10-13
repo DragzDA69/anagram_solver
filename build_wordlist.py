@@ -1,8 +1,7 @@
 """Rebuild wordlist.txt -- the dictionary the solver reads.
 
 Source: ENABLE1 (Enhanced North American Benchmark Lexicon), public domain,
-compiled by Alan Beale. See DICTIONARY.md for the evidence that Words on
-Stream's English list is ENABLE1.
+compiled by Alan Beale. See DICTIONARY.md for why this list was chosen.
 
 Usage:
     python build_wordlist.py              # download ENABLE1 and rebuild

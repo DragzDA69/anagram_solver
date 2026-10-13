@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local web UI for the Words on Stream solver.
+"""Local web UI for the Anagram Solver.
 
 Serves web/index.html and answers its requests by calling the very same
 functions main.py uses, so the page and the CLI can never drift apart.
@@ -24,6 +24,7 @@ from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
 WEB = HERE / "web"
+WORDLIST = HERE / "wordlist.txt"
 sys.path.insert(0, str(HERE))
 
 import main as solver  # noqa: E402  (needs HERE on sys.path first)
@@ -39,30 +40,17 @@ STATIC = {
 MAX_BODY = 64 * 1024
 MAX_WORDS = 5000  # cap the payload; '????????????' would otherwise return 151k
 
-_indexes: dict[str, dict] = {}
+_index: dict | None = None
 _lock = threading.Lock()
 
 
-def word_lists() -> list[Path]:
-    """Every .txt word list sitting in the repo, newest-looking first."""
-    found = sorted(p for p in HERE.glob("*.txt") if p.is_file())
-    default = HERE / "wordlist.txt"
-    if default in found:
-        found.remove(default)
-        found.insert(0, default)
-    return found
-
-
-def get_index(name: str) -> dict:
-    """Load and cache a word list by file name. Only repo .txt files are allowed."""
-    allowed = {p.name: p for p in word_lists()}
-    path = allowed.get(name)
-    if path is None:
-        raise ValueError("Unknown dictionary: {!r}".format(name))
+def get_index() -> dict:
+    """Load and cache the bundled word list."""
+    global _index
     with _lock:
-        if name not in _indexes:
-            _indexes[name] = solver.load_index(path)
-        return _indexes[name]
+        if _index is None:
+            _index = solver.load_index(WORDLIST)
+        return _index
 
 
 def run_solve(req: dict) -> dict:
@@ -72,8 +60,7 @@ def run_solve(req: dict) -> dict:
     if tiles == 0:
         raise ValueError("No letters given.")
 
-    name = str(req.get("dict") or "wordlist.txt")
-    by_length = get_index(name)
+    by_length = get_index()
 
     def as_int(key, default=0):
         raw = str(req.get(key, "")).strip()
@@ -125,7 +112,6 @@ def run_solve(req: dict) -> dict:
         "total": total,
         "truncated": truncated,
         "notes": notes,
-        "dict": name,
         "dictSize": sum(len(v) for v in by_length.values()),
     }
 
@@ -135,7 +121,7 @@ def choose(args, tiles: int, by_length: dict):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "WOSSolver"
+    server_version = "AnagramSolver"
 
     def log_message(self, fmt, *a):  # quieter console
         pass
@@ -155,21 +141,6 @@ class Handler(BaseHTTPRequestHandler):
     # -- routes --
     def do_GET(self) -> None:
         route = self.path.split("?", 1)[0]
-
-        if route == "/api/dicts":
-            dicts = []
-            for p in word_lists():
-                try:
-                    size = sum(len(v) for v in get_index(p.name).values())
-                except Exception:  # noqa: BLE001 - a broken list shouldn't break the page
-                    continue
-                dicts.append({"name": p.name, "words": size})
-            active = dicts[0]["name"] if dicts else ""
-            return self.send_json(200, {
-                "dicts": dicts,
-                "active": active,
-                "activeWords": dicts[0]["words"] if dicts else 0,
-            })
 
         entry = STATIC.get(route)
         if entry is None:
@@ -218,7 +189,7 @@ def run(argv=None) -> None:
         sys.exit("Missing web files: {}".format(", ".join(sorted(set(missing)))))
 
     try:
-        size = sum(len(v) for v in get_index("wordlist.txt").values())
+        size = sum(len(v) for v in get_index().values())
     except (ValueError, FileNotFoundError) as exc:
         sys.exit(str(exc))
 
@@ -228,7 +199,7 @@ def run(argv=None) -> None:
     except OSError as exc:
         sys.exit("Could not start on port {}: {}\nTry --port 8001.".format(args.port, exc))
 
-    print("Words on Stream solver  ->  {}".format(url), flush=True)
+    print("Anagram Solver  ->  {}".format(url), flush=True)
     print("{:,} words loaded. Ctrl+C to stop.".format(size), flush=True)
     if not args.no_browser:
         threading.Timer(0.4, webbrowser.open, (url,)).start()

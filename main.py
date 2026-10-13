@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Words on Stream anagram solver, with wildcard ('?') support.
+"""Anagram Solver, with wildcard ('?') support.
 
 Finds every dictionary word spellable from a pool of letters. Each letter is a
 tile and may be used only as many times as it appears; '?' is a wildcard that
-stands for any one letter, which is how Words on Stream shows a board letter
-that has not been revealed yet.
+stands for any one letter, for a tile that has not been revealed yet.
 
     python main.py "he?ll"        ->  hell, help, hello, ...
 
@@ -20,7 +19,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_DICT = HERE / "wordlist.txt"
+WORDLIST = HERE / "wordlist.txt"
 
 A = ord("a")
 WILDCARD = "?"
@@ -172,9 +171,9 @@ def render(found: dict, args, rack_desc: str, dict_size: int) -> None:
 
 EPILOG = """examples:
   python main.py "he?ll"                every word from  h e ? l l
-  python main.py "caution" -l 4,5,7     only the lengths this level needs
+  python main.py "caution" -l 4,5,7     only the word lengths you need
   python main.py "caution" -e           the big word (uses every tile)
-  python main.py "ca?tion" -p "..t..n"  a slot showing  _ _ t _ _ n
+  python main.py "ca?tion" -p "..t..n"  a pattern showing  _ _ t _ _ n
 
 Quote the letters: in bash an unquoted ? is a shell glob.
 """
@@ -183,7 +182,7 @@ Quote the letters: in bash an unquoted ? is a shell glob.
 def parse_args(argv=None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         prog="main.py",
-        description="Words on Stream anagram solver. '?' is a wildcard letter.",
+        description="Anagram Solver. '?' is a wildcard letter.",
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -191,11 +190,11 @@ def parse_args(argv=None) -> argparse.Namespace:
                     help="the board letters; '?' = an unrevealed letter")
     ap.add_argument("-l", "--length", help="only these word lengths, e.g. 4,5,7")
     ap.add_argument("-m", "--min", type=int, default=4, dest="min_len",
-                    help="minimum length (default 4, the shortest WOS answer)")
+                    help="minimum length (default 4)")
     ap.add_argument("-M", "--max", type=int, dest="max_len",
                     help="maximum length (default: number of tiles)")
     ap.add_argument("-e", "--exact", action="store_true",
-                    help="only words using every tile (the board's big word)")
+                    help="only words using every tile (the big word)")
     ap.add_argument("-p", "--pattern",
                     help="positional filter; '.' or '?' is any letter, e.g. 'h.ll.'")
     ap.add_argument("-n", "--limit", type=int, default=0, metavar="N",
@@ -203,8 +202,6 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--flat", action="store_true",
                     help="one word per line, no headers (for piping)")
     ap.add_argument("-c", "--count", action="store_true", help="show counts only")
-    ap.add_argument("-d", "--dict", type=Path, default=DEFAULT_DICT, metavar="PATH",
-                    help="alternate word list")
     return ap.parse_args(argv)
 
 
@@ -246,7 +243,7 @@ def main(argv=None) -> None:
         tiles = sum(rack) + wildcards
         if tiles == 0:
             raise ValueError("No letters given.")
-        by_length = load_index(args.dict)
+        by_length = load_index(WORDLIST)
         lengths, notes = choose_lengths(args, tiles, max(by_length) if by_length else 0)
     except (ValueError, FileNotFoundError) as exc:
         sys.exit(str(exc))
