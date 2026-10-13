@@ -71,7 +71,7 @@ VALUES: dict[str, object] = {
 
     "label_pattern": "Pattern",
     "ph_pattern": "..t..n",
-    "hint_pattern": "Position filter, <kbd>.</kbd> = any letter",
+    "hint_pattern": "Position filter, <kbd>.</kbd> = any letter, <kbd>?</kbd> = wildcard",
 
     "label_exclude": "Exclude letters",
     "ph_exclude": "qxz",

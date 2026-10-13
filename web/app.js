@@ -29,6 +29,14 @@ letters.addEventListener("input", () => {
   schedule();
 });
 
+$("clear").addEventListener("click", () => {
+  letters.value = "";
+  $("clear").hidden = true;
+  letters.focus();
+  syncHead();
+  solve();
+});
+
 $("pattern").addEventListener("input", (e) => {
   e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
 });
@@ -69,9 +77,11 @@ function reflectDisabled() {
 }
 
 /** Mirror the letters into the panel header, so a collapsed panel still shows
-    what is being solved. */
+    what is being solved. Also hides the clear button when there is nothing to
+    clear, since syncHead() already runs on every change to the field. */
 function syncHead() {
   const v = letters.value;
+  $("clear").hidden = !v;
   $("headRack").textContent = v ? [...v].join(" ") : "no letters yet";
 }
 

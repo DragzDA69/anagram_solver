@@ -26,12 +26,16 @@
 
       <div class="panelbody">
 
-        <label class="letters-field">
-          <span class="label">{{label_letters}}</span>
-          <input id="letters" name="letters" type="text" inputmode="latin"
-                 placeholder="{{ph_letters}}" spellcheck="false" autofocus>
+        <div class="letters-field">
+          <label class="label" for="letters">{{label_letters}}</label>
+          <div class="field">
+            <input id="letters" name="letters" type="text" inputmode="latin"
+                   placeholder="{{ph_letters}}" spellcheck="false" autofocus>
+            <button type="button" id="clear" class="clearbtn"
+                    title="{{title_clear}}" aria-label="{{title_clear}}" hidden>&times;</button>
+          </div>
           <span class="hint">{{hint_letters}}</span>
-        </label>
+        </div>
 
         <details id="opts" open>
           <summary>{{panel_options}}</summary>

@@ -194,13 +194,40 @@ input:focus, select:focus, button:focus-visible {
 }
 
 .letters-field { display: block; margin-bottom: 20px; }
+.letters-field .field { position: relative; }
 #letters {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 26px;
   letter-spacing: 0.3em;
   padding: 12px 14px;
+  /* room for the clear button, so long racks do not run under it */
+  padding-right: 52px;
   text-transform: lowercase;
 }
+
+/* Sits inside the field, vertically centred whatever the input's height. */
+.clearbtn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--ink-faint);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.clearbtn:hover { background: var(--panel-2); color: var(--ink); }
+.clearbtn:active { transform: translateY(-50%) scale(0.92); }
 
 .controls {
   margin-top: 14px;
