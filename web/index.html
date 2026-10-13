@@ -39,6 +39,12 @@
           <div class="controls">
 
             <label class="ctl">
+              <span class="label">{{label_exclude}}</span>
+              <input id="exclude" type="text" placeholder="{{ph_exclude}}" spellcheck="false">
+              <span class="hint">{{hint_exclude}}</span>
+            </label>
+
+            <label class="ctl">
               <span class="label">{{label_lengths}}</span>
               <input id="length" type="text" placeholder="{{ph_lengths}}" spellcheck="false">
               <span class="hint">{{hint_lengths}}</span>
@@ -57,24 +63,23 @@
             </label>
 
             <label class="ctl">
-              <span class="label">{{label_pattern}}</span>
-              <input id="pattern" type="text" placeholder="{{ph_pattern}}" spellcheck="false">
-              <span class="hint">{{hint_pattern}}</span>
-            </label>
-
-            <label class="ctl">
-              <span class="label">{{label_exclude}}</span>
-              <input id="exclude" type="text" placeholder="{{ph_exclude}}" spellcheck="false">
-              <span class="hint">{{hint_exclude}}</span>
-            </label>
-
-            <label class="ctl">
               <span class="label">{{label_limit}}</span>
               <input id="limit" type="number" min="0" placeholder="{{ph_limit}}">
               <span class="hint">{{hint_limit}}</span>
             </label>
 
           </div>
+
+          <details class="subopts" id="patternOpts">
+            <summary>{{label_pattern}}</summary>
+            <div class="controls">
+              <div class="ctl">
+                <input id="pattern" type="text" placeholder="{{ph_pattern}}"
+                       aria-label="{{label_pattern}}" spellcheck="false">
+                <span class="hint">{{hint_pattern}}</span>
+              </div>
+            </div>
+          </details>
 
           <div class="optsrow">
             <label class="toggle">

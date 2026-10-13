@@ -149,6 +149,8 @@ def print_run(parser):
         colored("While it runs:", SECONDARY),
         colored("Ctrl+R", BRIGHT) + colored("   restart -- reloads ui.py, main.py and the word list",
                                             SECONDARY),
+        colored("Ctrl+O", BRIGHT) + colored("   the same, and reopen the page in a browser",
+                                            SECONDARY),
         colored("Ctrl+C", BRIGHT) + colored("   stop", SECONDARY),
         "",
         colored("For a different port, or to skip the browser, call the server direct:", SECONDARY),

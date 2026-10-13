@@ -113,17 +113,29 @@ async function solve() {
   const mine = ++seq;
   flash("Solving…");
 
+  // The standalone build inlines solver.js, which defines LOCAL_SOLVE; the
+  // served page has no such thing and posts to the Python solver instead.
   let data;
-  try {
-    const res = await fetch("/api/solve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    data = await res.json();
-  } catch {
-    flash("Lost contact with the local server. Is server.py still running?", true);
-    return;
+  if (window.LOCAL_SOLVE) {
+    await window.LOCAL_READY;
+    try {
+      data = window.LOCAL_SOLVE(body);
+    } catch (exc) {
+      flash(exc.message, true);
+      return;
+    }
+  } else {
+    try {
+      const res = await fetch("/api/solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      data = await res.json();
+    } catch {
+      flash("Lost contact with the local server. Is server.py still running?", true);
+      return;
+    }
   }
 
   if (mine !== seq) return; // a newer keystroke already won
@@ -281,4 +293,14 @@ function code(word) {
   syncHead();
   reflectDisabled();
   results.innerHTML = '<p class="empty">{{msg_prompt}}</p>';
+
+  if (window.LOCAL_SOLVE) {
+    /* Offline build: say so while the embedded dictionary is decoding, then
+       report it where the server would have reported the word count. */
+    flash("{{msg_loading_dict}}");
+    window.LOCAL_READY.then(({ words, ms }) => {
+      flash(words.toLocaleString() + " words · ready in " + ms + " ms");
+      if (letters.value) solve();
+    });
+  }
 })();

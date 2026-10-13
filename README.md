@@ -51,9 +51,10 @@ Clicking a word copies it to the clipboard. Each length group collapses.
 | Key | |
 | :-- | :-- |
 | <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restart — reloads `ui.py`, `main.py` and the word list |
+| <kbd>Ctrl</kbd>+<kbd>O</kbd> | The same, and reopen the page in a browser |
 | <kbd>Ctrl</kbd>+<kbd>C</kbd> | Stop |
 
-Both need a real console and are Windows-only (`msvcrt`); elsewhere,
+They need a real console and are Windows-only (`msvcrt`); elsewhere,
 <kbd>Ctrl</kbd>+<kbd>C</kbd> still works.
 
 ---
@@ -67,15 +68,20 @@ all inlined — so it needs no server, no install and no network once loaded.
 python build_standalone.py
 ```
 
-rebuilds it from `wordlist.txt`, `web/standalone.css` and `web/icon-small.png`
-(661 KB, ~25 ms to start). Edit those, never the generated `index.html`.
+rebuilds it from the very same page the server serves — `web/index.html`,
+`style.css` and `app.js` — with the stylesheet, the icon, the word list and
+`web/solver.js` inlined into it (665 KB, ~25 ms to start). There is no second
+template, so the two cannot drift apart. Edit `web/`, never the generated
+`index.html`.
 
 For a phone, GitHub Pages is easiest: **Settings → Pages**, source `main`, root
 folder. It is then live at `https://dragzda69.github.io/anagram_solver/`, which
 `python main.py open` opens for you. Safari's **Share → Add to Home Screen**
 gives it an icon that opens fullscreen.
 
-> Its JavaScript is a direct port of the Python solver.
+> `web/solver.js` is a direct port of the Python solver, and only the standalone
+> loads it: the served page posts to `/api/solve` and gets the Python one. That
+> single call is the only difference between the two builds.
 
 ---
 
@@ -137,7 +143,7 @@ rebuilding with `python build_wordlist.py`.
 | `server.py` | Local web server for the desktop page |
 | `ui.py` | Every label, message and UI timing both pages use |
 | `cli/` | The styled help pages — banner, command headers, option tables |
-| `web/` | `style.css` + `app.js` for the served page, `standalone.template.html` + `standalone.css` for the single-file build |
+| `web/` | The page itself: `index.html`, `style.css`, `app.js`, plus `solver.js` for the offline build |
 | `index.html` | Standalone single-file solver — no server, works offline |
 | `icon.png` | The app icon; `web/icon-small.png` is the embedded copy |
 | `wordlist.txt` | ENABLE1, 4–12 letters |

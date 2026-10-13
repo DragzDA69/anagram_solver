@@ -10,6 +10,7 @@ functions main.py uses, so the page and the CLI can never drift apart.
 While it is running:
 
     Ctrl+R   restart -- reloads ui.py, main.py and wordlist.txt
+    Ctrl+O   the same, and reopen the page in a browser
     Ctrl+C   stop
 
 Standard library only, and it binds to localhost: nothing is exposed off
@@ -62,6 +63,7 @@ _lock = threading.Lock()
 # Hotkeys, as MiRTG Tool's npm watch does them: a daemon thread blocking on
 # getwch() and posting to a queue, so the main thread can wait on one place.
 CTRL_C_KEY = "\x03"
+CTRL_O_KEY = "\x0f"
 CTRL_R_KEY = "\x12"
 SPECIAL_KEY_PREFIXES = {"\x00", "\xe0"}   # first half of an arrow/function key
 
@@ -83,6 +85,8 @@ def keyboard_listener(events: "queue.Queue", stop: threading.Event) -> None:
             continue   # drop the scan-code half, so an arrow key is not a command
         if key == CTRL_R_KEY:
             events.put("restart")
+        elif key == CTRL_O_KEY:
+            events.put("reopen")
         elif key == CTRL_C_KEY:
             # getwch() swallows the interrupt, so it is forwarded by hand.
             events.put("stop")
@@ -285,7 +289,9 @@ def run(argv=None) -> None:
 
             print("Anagram Solver  ->  {}".format(url), flush=True)
             print("{:,} words loaded. {}".format(
-                size, "Ctrl+R restarts, Ctrl+C stops." if hotkeys else "Ctrl+C to stop."),
+                size,
+                "Ctrl+R restarts, Ctrl+O reopens, Ctrl+C stops."
+                if hotkeys else "Ctrl+C to stop."),
                 flush=True)
             if open_browser:
                 threading.Timer(0.4, webbrowser.open, (url,)).start()
@@ -299,10 +305,12 @@ def run(argv=None) -> None:
             httpd.shutdown()
             httpd.server_close()
 
-            if action != "restart":
+            if action not in ("restart", "reopen"):
                 print("\nstopped", flush=True)
                 return
 
+            # Ctrl+O is Ctrl+R plus the browser hand-off the first run does.
+            open_browser = action == "reopen"
             print("\nrestarting...", flush=True)
             try:
                 reload_sources()

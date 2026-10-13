@@ -32,7 +32,7 @@ BRAND_TAIL = "Solver"
 # How long a copy toast sits on screen, and how long it takes to slide in or
 # out. The fade drives both the CSS transition and the JS that removes the
 # element afterwards, so the two can never fall out of step.
-TOAST_MS = 2500
+TOAST_MS = 2000
 TOAST_FADE_MS = 220
 
 VALUES: dict[str, object] = {
@@ -42,8 +42,8 @@ VALUES: dict[str, object] = {
     "brand_tail": BRAND_TAIL,
     # Two sentences, kept apart: the header puts each in its own inline-block,
     # so a line break lands between them rather than mid-sentence.
-    "dict_info_source": "Compiles a list of all possible words that can be made from an anagram.",
-    "dict_info_wildcards": "Use ? for a letter you cannot see yet.",
+    "dict_info_source": "Finds all possible words that can be made from an anagram.",
+    "dict_info_wildcards": "Use <kbd>?</kbd> wildcard for unknown letters.",
     "meta_loading": "loading dictionary&hellip;",
 
     # -- panels ------------------------------------------------------------
@@ -51,14 +51,14 @@ VALUES: dict[str, object] = {
     "panel_options": "Options",
 
     # -- the letters field -------------------------------------------------
-    "label_letters": "Board letters",
+    "label_letters": "Anagram Input",
     "ph_letters": "he?lpf",
-    "hint_letters": "Letters only. Use <kbd>?</kbd> for a tile that hasn't been revealed.",
+    "hint_letters": "Letters only. Use <kbd>?</kbd> for any letters that haven't been revealed.",
     "title_wildcard": "Insert a wildcard",
     "title_clear": "Clear",
 
     # -- options -----------------------------------------------------------
-    "label_lengths": "Slot lengths",
+    "label_lengths": "Word length<small>s</small>",
     "ph_lengths": "4,5,7",
     "hint_lengths": "Only these lengths",
 
@@ -91,7 +91,7 @@ VALUES: dict[str, object] = {
     "btn_solve": "Solve",
 
     # -- messages the scripts show ----------------------------------------
-    "msg_prompt": "Type the board letters to begin.",
+    "msg_prompt": "Enter the anagram letters to begin.",
     "hint_click_copy": "Click any word to copy it to the clipboard.",
     "msg_no_match": "No words match.",
     "msg_loading_dict": "Loading dictionary&hellip;",

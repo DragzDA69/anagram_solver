@@ -120,7 +120,8 @@ form {
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
-#opts > summary {
+#opts > summary,
+.subopts > summary {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -134,14 +135,28 @@ form {
   user-select: none;
   list-style: none;
 }
-#opts > summary::-webkit-details-marker { display: none; }
-#opts > summary::before {
+#opts > summary::-webkit-details-marker,
+.subopts > summary::-webkit-details-marker { display: none; }
+#opts > summary::before,
+.subopts > summary::before {
   content: "\0025B8";
   display: inline-block;
   color: var(--ink-faint);
   transition: transform 0.15s;
 }
-#opts[open] > summary::before { transform: rotate(90deg); }
+#opts[open] > summary::before,
+.subopts[open] > summary::before { transform: rotate(90deg); }
+
+/* Pattern lives in here: a second tier inside Options, indented a little
+   so it reads as nested rather than as another top-level group. */
+.subopts {
+  margin-top: 16px;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+}
+.subopts > summary { color: var(--ink-faint); }
+.subopts > summary:hover { color: var(--ink-dim); }
+.subopts .controls { margin-top: 10px; }
 .optsrow { margin-top: 14px; }
 
 .label {
