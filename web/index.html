@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Anagram Solver</title>
+<title>{{app_name}}</title>
+<link rel="icon" type="image/png" href="/icon.png">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
 <header class="bar">
-  <h1>Anagram Solver</h1>
-  <p class="dict" id="dictInfo">&nbsp;</p>
+  <h1><img class="logo" src="/icon.png" alt="">{{brand_lead}} {{brand_tail}}</h1>
+  <p class="dict" id="dictInfo"><span>{{dict_info_source}}</span> <span>{{dict_info_wildcards}}</span></p>
 </header>
 
 <main>
@@ -18,7 +19,7 @@
 
     <details class="card" id="panel" open>
       <summary>
-        <span>Search</span>
+        <span>{{panel_search}}</span>
         <span class="rack" id="headRack"></span>
         <span class="chev">&#9662;</span>
       </summary>
@@ -26,45 +27,51 @@
       <div class="panelbody">
 
         <label class="letters-field">
-          <span class="label">Board letters</span>
+          <span class="label">{{label_letters}}</span>
           <input id="letters" name="letters" type="text" inputmode="latin"
-                 placeholder="he?lpf" spellcheck="false" autofocus>
-          <span class="hint">Letters only. Use <kbd>?</kbd> for a tile that hasn't been revealed.</span>
+                 placeholder="{{ph_letters}}" spellcheck="false" autofocus>
+          <span class="hint">{{hint_letters}}</span>
         </label>
 
         <details id="opts" open>
-          <summary>Options</summary>
+          <summary>{{panel_options}}</summary>
 
           <div class="controls">
 
             <label class="ctl">
-              <span class="label">Slot lengths</span>
-              <input id="length" type="text" placeholder="4,5,7" spellcheck="false">
-              <span class="hint">Only these lengths</span>
+              <span class="label">{{label_lengths}}</span>
+              <input id="length" type="text" placeholder="{{ph_lengths}}" spellcheck="false">
+              <span class="hint">{{hint_lengths}}</span>
             </label>
 
             <label class="ctl" id="minWrap">
-              <span class="label">Min length</span>
+              <span class="label">{{label_min}}</span>
               <input id="min" type="number" min="1" max="12" value="4">
-              <span class="hint">Shortest word to look for</span>
+              <span class="hint">{{hint_min}}</span>
             </label>
 
             <label class="ctl" id="maxWrap">
-              <span class="label">Max length</span>
-              <input id="max" type="number" min="1" max="12" placeholder="tiles">
-              <span class="hint">Defaults to tile count</span>
+              <span class="label">{{label_max}}</span>
+              <input id="max" type="number" min="1" max="12" placeholder="{{ph_max}}">
+              <span class="hint">{{hint_max}}</span>
             </label>
 
             <label class="ctl">
-              <span class="label">Pattern</span>
-              <input id="pattern" type="text" placeholder="..t..n" spellcheck="false">
-              <span class="hint">Position filter, <kbd>.</kbd> = any</span>
+              <span class="label">{{label_pattern}}</span>
+              <input id="pattern" type="text" placeholder="{{ph_pattern}}" spellcheck="false">
+              <span class="hint">{{hint_pattern}}</span>
             </label>
 
             <label class="ctl">
-              <span class="label">Limit per group</span>
-              <input id="limit" type="number" min="0" placeholder="all">
-              <span class="hint">0 or blank shows all</span>
+              <span class="label">{{label_exclude}}</span>
+              <input id="exclude" type="text" placeholder="{{ph_exclude}}" spellcheck="false">
+              <span class="hint">{{hint_exclude}}</span>
+            </label>
+
+            <label class="ctl">
+              <span class="label">{{label_limit}}</span>
+              <input id="limit" type="number" min="0" placeholder="{{ph_limit}}">
+              <span class="hint">{{hint_limit}}</span>
             </label>
 
           </div>
@@ -72,21 +79,20 @@
           <div class="optsrow">
             <label class="toggle">
               <input type="checkbox" id="exact">
-              <span>Big word only <em>uses every tile</em></span>
+              <span>{{toggle_exact}} <em>{{toggle_exact_note}}</em></span>
             </label>
           </div>
         </details>
 
         <div class="switches">
           <div class="seg" role="group" aria-label="View">
-            <button type="button" class="on" data-view="grouped">Grouped</button>
-            <button type="button" data-view="flat">Flat</button>
-            <button type="button" data-view="count">Counts</button>
+            <button type="button" class="on" data-view="grouped">{{view_grouped}}</button>
+            <button type="button" data-view="flat">{{view_flat}}</button>
+            <button type="button" data-view="count">{{view_counts}}</button>
           </div>
 
           <div class="spacer"></div>
-          <button type="button" id="copy" class="ghost">Copy words</button>
-          <button type="submit" id="go">Solve</button>
+          <button type="submit" id="go">{{btn_solve}}</button>
         </div>
 
       </div>
@@ -94,8 +100,11 @@
   </form>
 
   <section id="status" class="status" aria-live="polite"></section>
+  <p class="dict copyhint" id="copyHint" hidden>{{hint_click_copy}}</p>
   <section id="results" class="results"></section>
 </main>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
 <script src="/app.js"></script>
 </body>

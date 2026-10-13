@@ -5,7 +5,7 @@ Finds every dictionary word spellable from a pool of letters. Each letter is a
 tile and may be used only as many times as it appears; '?' is a wildcard that
 stands for any one letter, for a tile that has not been revealed yet.
 
-    python main.py "he?ll"        ->  hell, help, hello, ...
+    python main.py "he?lpf"        ->  hell, help, hello, ...
 
 Dictionary: ENABLE1, 4-12 letters (see DICTIONARY.md).
 """
@@ -16,10 +16,12 @@ import argparse
 import re
 import shutil
 import sys
+import webbrowser
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 WORDLIST = HERE / "wordlist.txt"
+SITE_URL = "https://dragzda69.github.io/anagram_solver"
 
 A = ord("a")
 WILDCARD = "?"
@@ -82,6 +84,31 @@ def parse_rack(raw: str):
         else:
             raise ValueError("Invalid character in letters: {!r} (use a-z and '?')".format(ch))
     return counts, wildcards
+
+
+def parse_exclusions(raw: str) -> set:
+    """The letters a word may not contain. Anything that is not a-z is ignored.
+
+    Deliberately lenient where parse_rack is strict: this is typed mid-solve, in
+    whatever shape (\"x z\", \"x,z\"), and a stray comma should not stop the search.
+    """
+    return {ch for ch in (raw or "").lower() if "a" <= ch <= "z"}
+
+
+def filter_excluded(found: dict, excluded: set) -> dict:
+    """Drop every word containing one of `excluded`, and any group left empty.
+
+    By letter, not by count: a board letter that is not really in play makes any
+    word using it wrong, however many of it the rack seems to hold.
+    """
+    if not excluded:
+        return found
+    kept = {}
+    for length, words in found.items():
+        survivors = [w for w in words if not (excluded & set(w))]
+        if survivors:
+            kept[length] = survivors
+    return kept
 
 
 def solve(by_length: dict, rack: list, wildcards: int, lengths: list) -> dict:
@@ -169,24 +196,40 @@ def render(found: dict, args, rack_desc: str, dict_size: int) -> None:
 # CLI
 # --------------------------------------------------------------------------- #
 
-EPILOG = """examples:
-  python main.py "he?ll"                every word from  h e ? l l
-  python main.py "caution" -l 4,5,7     only the word lengths you need
-  python main.py "caution" -e           the big word (uses every tile)
-  python main.py "ca?tion" -p "..t..n"  a pattern showing  _ _ t _ _ n
+COMMANDS = ("solve", "run", "open")
+HELP_FLAGS = ("-h", "--help")
 
-Quote the letters: in bash an unquoted ? is a shell glob.
-"""
+
+def show_help(command, parser) -> None:
+    """Print the page for `command`, or the top-level one when there is none."""
+    from cli import pages
+
+    if command == "run":
+        pages.print_run(parser)
+    elif command == "open":
+        pages.print_open(parser, SITE_URL)
+    elif command == "solve":
+        pages.print_solve(parser)
+    else:
+        pages.print_top_level(SITE_URL)
 
 
 def parse_args(argv=None) -> argparse.Namespace:
-    ap = argparse.ArgumentParser(
-        prog="main.py",
-        description="Anagram Solver. '?' is a wildcard letter.",
-        epilog=EPILOG,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    ap.add_argument("letters", nargs="+",
+    """Pull an optional leading command off the front, then parse the rest.
+
+    A subparser per command would force every solve to say `solve` first, so the
+    command is taken by hand and `solve` stays the default. Only the very first
+    word is considered, which keeps a rack that happens to spell one reachable
+    as `main.py solve open`.
+    """
+    argv = list(sys.argv[1:] if argv is None else argv)
+    explicit = bool(argv) and argv[0].lower() in COMMANDS
+    command = argv.pop(0).lower() if explicit else "solve"
+
+    # add_help=False: argparse's own formatter is replaced by cli/pages.py, but
+    # the parser still owns the option list those pages print.
+    ap = argparse.ArgumentParser(prog="main.py", add_help=False)
+    ap.add_argument("letters", nargs="*",
                     help="the board letters; '?' = an unrevealed letter")
     ap.add_argument("-l", "--length", help="only these word lengths, e.g. 4,5,7")
     ap.add_argument("-m", "--min", type=int, default=4, dest="min_len",
@@ -197,12 +240,32 @@ def parse_args(argv=None) -> argparse.Namespace:
                     help="only words using every tile (the big word)")
     ap.add_argument("-p", "--pattern",
                     help="positional filter; '.' or '?' is any letter, e.g. 'h.ll.'")
+    ap.add_argument("-x", "--exclude", default="", metavar="LETTERS",
+                    help="drop words containing any of these letters, e.g. 'qxz'")
     ap.add_argument("-n", "--limit", type=int, default=0, metavar="N",
                     help="show at most N words per length group")
     ap.add_argument("--flat", action="store_true",
                     help="one word per line, no headers (for piping)")
     ap.add_argument("-c", "--count", action="store_true", help="show counts only")
-    return ap.parse_args(argv)
+
+    # A bare run, or -h anywhere, is a request for a page rather than a search.
+    if not argv and not explicit:
+        show_help(None, ap)
+        raise SystemExit(0)
+    if any(arg in HELP_FLAGS for arg in argv):
+        show_help(command if explicit else None, ap)
+        raise SystemExit(0)
+
+    args = ap.parse_args(argv)
+    args.command = command
+
+    # run and open are errands, not searches: nothing to solve, nothing to tune.
+    if command == "solve":
+        if not args.letters:
+            ap.error("no letters given; try: python main.py -h")
+    elif args.letters:
+        ap.error("{} takes no letters (got {!r})".format(command, " ".join(args.letters)))
+    return args
 
 
 def choose_lengths(args, tiles: int, longest: int):
@@ -237,6 +300,21 @@ def choose_lengths(args, tiles: int, longest: int):
 def main(argv=None) -> None:
     args = parse_args(argv)
 
+    if args.command == "open":
+        print("Opening {}".format(SITE_URL))
+        if not webbrowser.open(SITE_URL):
+            sys.exit("Could not open a browser. The page is at {}".format(SITE_URL))
+        return
+
+    if args.command == "run":
+        # Imported here, not at the top: server.py imports this module, and it
+        # needs the project directory on the path to do it.
+        sys.path.insert(0, str(HERE))
+        import server
+
+        server.run([])  # server.py's own defaults: port 8000, opens a browser
+        return
+
     raw = "".join(args.letters)
     try:
         rack, wildcards = parse_rack(raw)
@@ -262,6 +340,11 @@ def main(argv=None) -> None:
             if kept:
                 matched[length] = kept
         found = matched
+
+    excluded = parse_exclusions(args.exclude)
+    if excluded:
+        found = filter_excluded(found, excluded)
+        print("note: excluding words with " + ", ".join(sorted(excluded)), file=sys.stderr)
 
     letters_only = tiles - wildcards
     rack_desc = " ".join(raw.lower().replace(" ", ""))

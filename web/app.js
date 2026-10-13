@@ -7,6 +7,9 @@ const results = $("results");
 const status = $("status");
 
 let view = "grouped";
+/* Lengths the reader has collapsed. Results re-render on every keystroke,
+   so without this a closed group would spring open again as you type. */
+const collapsed = new Set();
 let lastWords = [];
 let timer = null;
 let seq = 0;
@@ -30,6 +33,10 @@ $("pattern").addEventListener("input", (e) => {
   e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
 });
 
+$("exclude").addEventListener("input", (e) => {
+  e.target.value = e.target.value.toLowerCase().replace(/[^a-z]/g, "");
+});
+
 $("length").addEventListener("input", (e) => {
   e.target.value = e.target.value.replace(/[^0-9,\s]/g, "");
 });
@@ -45,21 +52,11 @@ document.querySelectorAll(".seg button").forEach((b) => {
   });
 });
 
-for (const id of ["length", "min", "max", "pattern", "limit", "exact"]) {
+for (const id of ["length", "min", "max", "pattern", "exclude", "limit", "exact"]) {
   $(id).addEventListener("input", () => { reflectDisabled(); schedule(); });
 }
 
 form.addEventListener("submit", (e) => { e.preventDefault(); solve(); });
-
-$("copy").addEventListener("click", async () => {
-  if (!lastWords.length) return;
-  try {
-    await navigator.clipboard.writeText(lastWords.join("\n"));
-    flash(`Copied ${lastWords.length} words`);
-  } catch {
-    flash("Clipboard blocked by the browser", true);
-  }
-});
 
 /** Grey out controls the solver will ignore, so the UI matches the CLI's precedence. */
 function reflectDisabled() {
@@ -93,11 +90,12 @@ function flash(msg, bad) {
 async function solve() {
   const raw = letters.value.trim();
   results.innerHTML = "";
+  $("copyHint").hidden = true;
   lastWords = [];
 
   if (!raw) {
     flash("");
-    results.innerHTML = '<p class="empty">Type the board letters to begin.</p>';
+    results.innerHTML = '<p class="empty">{{msg_prompt}}</p>';
     return;
   }
 
@@ -107,6 +105,7 @@ async function solve() {
     min: $("min").value.trim(),
     max: $("max").value.trim(),
     pattern: $("pattern").value.trim(),
+    exclude: $("exclude").value.trim(),
     limit: $("limit").value.trim(),
     exact: $("exact").checked,
   };
@@ -123,7 +122,7 @@ async function solve() {
     });
     data = await res.json();
   } catch {
-    flash("Lost contact with the local server. Is serve.py still running?", true);
+    flash("Lost contact with the local server. Is server.py still running?", true);
     return;
   }
 
@@ -139,6 +138,7 @@ async function solve() {
 
 function render(data) {
   const { rack, groups, total, notes } = data;
+  $("copyHint").hidden = true;
   lastWords = groups.flatMap((g) => g.words);
 
   let summary = `${total.toLocaleString()} word${total === 1 ? "" : "s"} from `
@@ -151,7 +151,7 @@ function render(data) {
   flash(summary);
 
   if (!total) {
-    results.innerHTML = '<p class="empty">No words match.</p>';
+    results.innerHTML = '<p class="empty">{{msg_no_match}}</p>';
     return;
   }
 
@@ -164,6 +164,7 @@ function render(data) {
     return;
   }
 
+  $("copyHint").hidden = false;   // past the empty and Counts cases: chips follow
   const frag = document.createDocumentFragment();
 
   if (view === "flat") {
@@ -173,12 +174,18 @@ function render(data) {
     frag.append(box);
   } else {
     for (const g of groups) {
-      const sec = document.createElement("section");
+      const sec = document.createElement("details");
       sec.className = "group";
+      sec.open = !collapsed.has(g.length);
+      sec.addEventListener("toggle", () => {
+        if (sec.open) collapsed.delete(g.length);
+        else collapsed.add(g.length);
+      });
 
-      const h = document.createElement("h2");
+      const h = document.createElement("summary");
       h.innerHTML = `<b>${g.length} letters</b> <i>${g.count.toLocaleString()}`
-        + `${g.words.length < g.count ? `, showing ${g.words.length}` : ""}</i>`;
+        + `${g.words.length < g.count ? `, showing ${g.words.length}` : ""}</i>`
+        + `<span class="rule"></span><span class="chev">&#9662;</span>`;
 
       const box = document.createElement("div");
       box.className = "words";
@@ -193,7 +200,75 @@ function render(data) {
 }
 
 function chip(word) {
-  const el = document.createElement("span");
+  const el = document.createElement("button");
+  el.type = "button";
+  el.className = "word";
+  el.textContent = word;
+  return el;
+}
+
+// --- copying a single word ------------------------------------------------
+
+/* Both from ui.py, so the CSS transition and the timer below stay in step. */
+/* Quoted so this file is valid JS before rendering as well as after. */
+const TOAST_MS = +"{{toast_ms}}", TOAST_FADE_MS = +"{{toast_fade_ms}}";
+
+/* One listener for the whole board: there can be thousands of chips. */
+results.addEventListener("click", (e) => {
+  const el = e.target.closest(".word");
+  if (el) copyWord(el.textContent);
+});
+
+async function copyWord(word) {
+  try {
+    await navigator.clipboard.writeText(word);
+  } catch {
+    if (!legacyCopy(word)) {
+      flash("{{msg_copy_failed}}", true);
+      return;
+    }
+  }
+  toast(word);
+}
+
+function legacyCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.append(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch {}
+  ta.remove();
+  return ok;
+}
+
+/* Android-style: a new toast wipes out whatever is on screen at once, rather
+   than queueing behind it or crossfading with it. */
+function toast(word) {
+  const host = $("toasts");
+  for (const old of host.querySelectorAll(".toast")) {
+    clearTimeout(old.dismiss);
+    old.remove();
+  }
+
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.append(code(word), document.createTextNode("{{toast_copied_suffix}}"));
+  host.append(el);
+
+  // Two frames, so the browser paints the off-screen state before it animates.
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("show")));
+
+  el.dismiss = setTimeout(() => {
+    el.classList.remove("show");
+    el.dismiss = setTimeout(() => el.remove(), TOAST_FADE_MS + 80);
+  }, TOAST_MS);
+}
+
+function code(word) {
+  const el = document.createElement("code");
   el.textContent = word;
   return el;
 }
@@ -205,7 +280,5 @@ function chip(word) {
   if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
   syncHead();
   reflectDisabled();
-  $("dictInfo").textContent =
-    "Solves anagrams from the bundled word list. Handles wildcard [ ? * ] characters.";
-  results.innerHTML = '<p class="empty">Type the board letters to begin.</p>';
+  results.innerHTML = '<p class="empty">{{msg_prompt}}</p>';
 })();

@@ -5,211 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Anagram Solver">
+<meta name="apple-mobile-web-app-title" content="{{app_name}}">
 <meta name="theme-color" content="#11131a">
 <meta name="color-scheme" content="dark light">
-<title>Anagram Solver</title>
-<style>
-:root{
-  --bg:#11131a; --panel:#181b24; --panel2:#1f2430; --line:#2b3140;
-  --ink:#e6e9f0; --dim:#9aa3b5; --faint:#6b7489;
-  --accent:#6ea8fe; --accent-ink:#0d1117; --bad:#ff8585;
-}
-@media (prefers-color-scheme:light){
-  :root{
-    --bg:#f4f6fa; --panel:#fff; --panel2:#eef1f7; --line:#d9dfea;
-    --ink:#1a1f2b; --dim:#5a6479; --faint:#8a93a6;
-    --accent:#2f6fe4; --accent-ink:#fff; --bad:#c23b3b;
-  }
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0}
-body{
-  background:var(--bg); color:var(--ink);
-  font:16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  -webkit-text-size-adjust:100%;
-}
-.wrap{max-width:860px;margin:0 auto;padding:14px 14px 48px}
-
-header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-header h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em}
-header h1 span{color:var(--faint);font-weight:400}
-header p{margin:0;font-size:12px;color:var(--faint)}
-
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
-
-label.lbl{display:block;font-size:11px;font-weight:650;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
-.hint{display:block;margin-top:5px;font-size:12px;color:var(--faint)}
-
-/* 16px minimum stops iOS zooming the page on focus */
-input,select,button{font:inherit;font-size:16px}
-input[type=text],input[type=number],select{
-  width:100%;background:var(--panel2);border:1px solid var(--line);
-  border-radius:9px;color:var(--ink);padding:11px 12px
-}
-input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-
-.entry{display:flex;gap:8px;align-items:stretch}
-#letters{
-  flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;
-  font-size:24px;letter-spacing:.26em;padding:12px;text-transform:lowercase;min-width:0
-}
-.key{
-  flex:0 0 auto;width:52px;border:1px solid var(--line);border-radius:9px;
-  background:var(--panel2);color:var(--dim);font-size:20px;font-weight:650;cursor:pointer
-}
-.key:active{background:var(--accent);color:var(--accent-ink)}
-
-details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
-summary{cursor:pointer;font-size:14px;color:var(--dim);list-style:none;
-  display:flex;align-items:center;gap:7px;padding:4px 0;user-select:none}
-summary::-webkit-details-marker{display:none}
-summary::before{content:"\25B8";transition:transform .15s;display:inline-block;color:var(--faint)}
-details[open] summary::before{transform:rotate(90deg)}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
-.ctl.off{opacity:.4}
-
-.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;
-  border-top:1px solid var(--line);padding-top:12px}
-.toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;padding:4px 0}
-.toggle input{width:20px;height:20px;accent-color:var(--accent);margin:0}
-.toggle em{font-style:normal;font-size:12px;color:var(--faint)}
-.grow{flex:1}
-
-.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.seg button{background:var(--panel2);border:0;color:var(--dim);
-  font-size:14px;padding:9px 14px;cursor:pointer;flex:1}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:650}
-
-.ghost{background:var(--panel2);color:var(--dim);border:1px solid var(--line);
-  border-radius:9px;padding:10px 16px;font-weight:600;cursor:pointer}
-
-/* the whole search panel collapses, to hand the screen over to results */
-details.card{padding:0}
-details.card>summary{
-  padding:14px;font-size:15px;font-weight:650;color:var(--ink);
-  display:flex;align-items:center;gap:10px;min-height:52px
-}
-details.card>summary::before{content:none}
-details.card>summary .rack{
-  flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;
-  font-size:15px;letter-spacing:.2em;color:var(--dim);font-weight:400;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
-}
-details.card[open]>summary .rack{display:none}
-details.card>summary .chev{
-  margin-left:auto;color:var(--faint);font-size:15px;
-  display:inline-block;transition:transform .18s
-}
-details.card[open]>summary .chev{transform:rotate(180deg)}
-.panelbody{padding:0 14px 14px}
-
-#status{margin:16px 2px 0;font-size:14px;color:var(--dim);min-height:22px}
-#status.err{color:var(--bad)}
-
-.group{margin-top:16px}
-.group h2{margin:0 0 9px;font-size:13px;font-weight:600;color:var(--dim);
-  display:flex;align-items:center;gap:10px}
-.group h2::after{content:"";flex:1;height:1px;background:var(--line)}
-.group h2 b{color:var(--ink);font-weight:650}
-.group h2 i{font-style:normal;color:var(--faint);font-weight:400}
-
-.words{display:flex;flex-wrap:wrap;gap:6px}
-.words span{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;
-  background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:5px 10px}
-.words.flat{display:block;column-width:120px;column-gap:18px}
-.words.flat span{display:block;border:0;background:none;padding:2px 0}
-
-table.counts{border-collapse:collapse;font-size:15px;margin-top:14px;width:100%;max-width:280px}
-table.counts td{padding:7px 0;border-bottom:1px solid var(--line)}
-table.counts td:last-child{text-align:right;font-variant-numeric:tabular-nums}
-table.counts tr:last-child td{font-weight:650;border-bottom:0}
-
-.empty{color:var(--faint);padding:22px 2px}
-kbd{font:inherit;font-size:11px;background:var(--panel2);border:1px solid var(--line);
-  border-radius:4px;padding:0 4px}
-</style>
+<title>{{app_name}}</title>
+<link rel="icon" type="image/png" href="__ICON__">
+<style>__STYLES__</style>
 </head>
 <body>
 <div class="wrap">
 
 <header>
-  <h1>Anagram <span>Solver</span></h1>
-  <p id="meta">loading dictionary&hellip;</p>
+  <h1><img class="logo" src="__ICON__" alt="">{{brand_lead}} <span>{{brand_tail}}</span></h1>
+  <p id="meta">{{meta_loading}}</p>
 </header>
 
 <details class="card" id="panel" open>
   <summary>
-    <span>Search</span>
+    <span>{{panel_search}}</span>
     <span class="rack" id="headRack"></span>
     <span class="chev">&#9662;</span>
   </summary>
   <div class="panelbody">
-  <label class="lbl" for="letters">Board letters</label>
+  <label class="lbl" for="letters">{{label_letters}}</label>
   <div class="entry">
-    <input id="letters" type="text" placeholder="he?lpf"
+    <input id="letters" type="text" placeholder="{{ph_letters}}"
            autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-    <button class="key" id="addWild" type="button" title="Insert a wildcard">?</button>
-    <button class="key" id="clear" type="button" title="Clear">&times;</button>
+    <button class="key" id="addWild" type="button" title="{{title_wildcard}}">?</button>
+    <button class="key" id="clear" type="button" title="{{title_clear}}">&times;</button>
   </div>
-  <span class="hint">Letters only. <kbd>?</kbd> is a tile that hasn't been revealed.</span>
+  <span class="hint">{{hint_letters}}</span>
 
   <details id="opts" open>
-    <summary>Options</summary>
+    <summary>{{panel_options}}</summary>
     <div class="grid">
       <div class="ctl" id="lenWrap">
-        <label class="lbl" for="length">Slot lengths</label>
-        <input id="length" type="text" inputmode="numeric" placeholder="4,5,7" autocomplete="off">
-        <span class="hint">Only these lengths</span>
+        <label class="lbl" for="length">{{label_lengths}}</label>
+        <input id="length" type="text" inputmode="numeric" placeholder="{{ph_lengths}}" autocomplete="off">
+        <span class="hint">{{hint_lengths}}</span>
       </div>
       <div class="ctl" id="minWrap">
-        <label class="lbl" for="min">Min length</label>
+        <label class="lbl" for="min">{{label_min}}</label>
         <input id="min" type="number" inputmode="numeric" min="1" max="12" value="4">
       </div>
       <div class="ctl" id="maxWrap">
-        <label class="lbl" for="max">Max length</label>
-        <input id="max" type="number" inputmode="numeric" min="1" max="12" placeholder="tiles">
+        <label class="lbl" for="max">{{label_max}}</label>
+        <input id="max" type="number" inputmode="numeric" min="1" max="12" placeholder="{{ph_max}}">
       </div>
       <div class="ctl">
-        <label class="lbl" for="pattern">Pattern</label>
-        <input id="pattern" type="text" placeholder="..t..n"
+        <label class="lbl" for="pattern">{{label_pattern}}</label>
+        <input id="pattern" type="text" placeholder="{{ph_pattern}}"
                autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-        <span class="hint"><kbd>.</kbd> = any letter</span>
+        <span class="hint">{{hint_pattern}}</span>
       </div>
       <div class="ctl">
-        <label class="lbl" for="limit">Limit per group</label>
-        <input id="limit" type="number" inputmode="numeric" min="0" placeholder="all">
+        <label class="lbl" for="exclude">{{label_exclude}}</label>
+        <input id="exclude" type="text" placeholder="{{ph_exclude}}"
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <span class="hint">{{hint_exclude}}</span>
+      </div>
+      <div class="ctl">
+        <label class="lbl" for="limit">{{label_limit}}</label>
+        <input id="limit" type="number" inputmode="numeric" min="0" placeholder="{{ph_limit}}">
       </div>
     </div>
 
     <div class="row">
       <label class="toggle">
         <input type="checkbox" id="exact">
-        <span>Big word only <em>uses every tile</em></span>
+        <span>{{toggle_exact}} <em>{{toggle_exact_note}}</em></span>
       </label>
     </div>
   </details>
 
   <div class="row">
     <div class="seg" role="group" aria-label="View">
-      <button type="button" class="on" data-view="grouped">Grouped</button>
-      <button type="button" data-view="flat">Flat</button>
-      <button type="button" data-view="count">Counts</button>
+      <button type="button" class="on" data-view="grouped">{{view_grouped}}</button>
+      <button type="button" data-view="flat">{{view_flat}}</button>
+      <button type="button" data-view="count">{{view_counts}}</button>
     </div>
-    <div class="grow"></div>
-    <button class="ghost" id="copy" type="button">Copy</button>
   </div>
   </div>
 </details>
 
 <p id="status" aria-live="polite"></p>
+<p class="copyhint" id="copyHint" hidden>{{hint_click_copy}}</p>
 <div id="results"></div>
 
 </div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
 <script id="wl" type="text/plain">__WORDLIST__</script>
 <script>
@@ -219,6 +104,9 @@ const MAX_SHOW = 3000;
 
 let WORDS = null, MASK = null, LEN = null, LONGEST = 0;
 let view = "grouped", lastWords = [], timer = null;
+/* Lengths the reader has collapsed. Results re-render on every keystroke,
+   so without this a closed group would spring open again as you type. */
+const collapsed = new Set();
 
 /* ---- dictionary: decode the front-coded list ------------------------- */
 /* Each line is <shared-prefix-length as one char><the rest of the word>. */
@@ -338,6 +226,7 @@ function reflectDisabled() {
 function run() {
   const raw = $("letters").value.trim();
   const results = $("results");
+  $("copyHint").hidden = true;
   lastWords = [];
   if (!WORDS) return;
   if (!raw) {
@@ -383,6 +272,16 @@ function run() {
     }
   }
 
+  /* By letter, not by count: a board letter that is not really in play makes
+     any word using it wrong, however many of it the rack seems to hold. */
+  const banned = new Set($("exclude").value.toLowerCase().replace(/[^a-z]/g, ""));
+  if (banned.size) {
+    for (const [L, words] of [...found]) {
+      const kept = words.filter((w) => ![...w].some((c) => banned.has(c)));
+      if (kept.length) found.set(L, kept); else found.delete(L);
+    }
+  }
+
   const limit = parseInt($("limit").value, 10) || 0;
   let total = 0;
   for (const words of found.values()) total += words.length;
@@ -404,18 +303,71 @@ function run() {
   if (wild) summary += " + " + wild + " wildcard" + (wild === 1 ? "" : "s");
   summary += " · " + ms + " ms";
   for (const n of lengths.notes) summary += " · " + n;
+  if (banned.size) summary += " · excluding " + [...banned].sort().join(", ");
   if (capped) summary += " · showing first " + MAX_SHOW.toLocaleString();
   flash(summary);
 
   render(groups, total);
 }
 
-function chip(w) { const s = document.createElement("span"); s.textContent = w; return s; }
+function chip(w) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "word";
+  b.textContent = w;
+  return b;
+}
+
+/* ---- copying a single word -------------------------------------------- */
+/* Both from ui.py, so the CSS transition and this timer stay in step. */
+/* Quoted so this file is valid JS before rendering as well as after. */
+const TOAST_MS = +"{{toast_ms}}", TOAST_FADE_MS = +"{{toast_fade_ms}}";
+
+async function copyWord(word) {
+  try {
+    await navigator.clipboard.writeText(word);
+  } catch {
+    const ta = document.createElement("textarea");   // iOS fallback
+    ta.value = word; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch {}
+    ta.remove();
+    if (!ok) { flash("{{msg_copy_failed}}", true); return; }
+  }
+  toast(word);
+}
+
+/* Android-style: a new toast wipes out whatever is on screen at once, rather
+   than queueing behind it or crossfading with it. */
+function toast(word) {
+  const host = $("toasts");
+  for (const old of host.querySelectorAll(".toast")) {
+    clearTimeout(old.dismiss);
+    old.remove();
+  }
+
+  const el = document.createElement("div");
+  el.className = "toast";
+  const c = document.createElement("code");
+  c.textContent = word;
+  el.append(c, document.createTextNode("{{toast_copied_suffix}}"));
+  host.append(el);
+
+  /* Two frames, so the browser paints the off-screen state before animating. */
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("show")));
+
+  el.dismiss = setTimeout(() => {
+    el.classList.remove("show");
+    el.dismiss = setTimeout(() => el.remove(), TOAST_FADE_MS + 80);
+  }, TOAST_MS);
+}
 
 function render(groups, total) {
   const results = $("results");
+  $("copyHint").hidden = true;
   lastWords = groups.flatMap((g) => g.words);
-  if (!total) { results.innerHTML = '<p class="empty">No words match.</p>'; return; }
+  if (!total) { results.innerHTML = '<p class="empty">{{msg_no_match}}</p>'; return; }
 
   if (view === "count") {
     results.innerHTML = "<table class='counts'>" +
@@ -424,6 +376,7 @@ function render(groups, total) {
     return;
   }
 
+  $("copyHint").hidden = false;   // past the empty and Counts cases: chips follow
   const frag = document.createDocumentFragment();
   if (view === "flat") {
     const box = document.createElement("div");
@@ -432,11 +385,17 @@ function render(groups, total) {
     frag.append(box);
   } else {
     for (const g of groups) {
-      const sec = document.createElement("section");
+      const sec = document.createElement("details");
       sec.className = "group";
-      const h = document.createElement("h2");
+      sec.open = !collapsed.has(g.length);
+      sec.addEventListener("toggle", () => {
+        if (sec.open) collapsed.delete(g.length);
+        else collapsed.add(g.length);
+      });
+      const h = document.createElement("summary");
       h.innerHTML = "<b>" + g.length + " letters</b> <i>" + g.count.toLocaleString() +
-        (g.words.length < g.count ? ", showing " + g.words.length : "") + "</i>";
+        (g.words.length < g.count ? ", showing " + g.words.length : "") + "</i>" +
+        '<span class="rule"></span><span class="chev">&#9662;</span>';
       const box = document.createElement("div");
       box.className = "words";
       box.append(...g.words.map(chip));
@@ -483,7 +442,11 @@ $("pattern").addEventListener("input", (e) => {
   e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
 });
 
-for (const id of ["length", "min", "max", "pattern", "limit", "exact"]) {
+$("exclude").addEventListener("input", (e) => {
+  e.target.value = e.target.value.toLowerCase().replace(/[^a-z]/g, "");
+});
+
+for (const id of ["length", "min", "max", "pattern", "exclude", "limit", "exact"]) {
   $(id).addEventListener("input", () => { reflectDisabled(); schedule(); });
 }
 
@@ -496,24 +459,14 @@ document.querySelectorAll(".seg button").forEach((b) => {
   });
 });
 
-$("copy").addEventListener("click", async () => {
-  if (!lastWords.length) return;
-  const text = lastWords.join("\n");
-  try {
-    await navigator.clipboard.writeText(text);
-    flash("Copied " + lastWords.length + " words");
-  } catch {
-    const ta = document.createElement("textarea");   // iOS fallback
-    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-    document.body.append(ta); ta.select();
-    try { document.execCommand("copy"); flash("Copied " + lastWords.length + " words"); }
-    catch { flash("Could not copy", true); }
-    ta.remove();
-  }
+/* One listener for the whole board: there can be thousands of chips. */
+$("results").addEventListener("click", (e) => {
+  const el = e.target.closest(".word");
+  if (el) copyWord(el.textContent);
 });
 
 /* Decode after first paint so the page is visible straight away. */
-$("results").innerHTML = '<p class="empty">Loading dictionary&hellip;</p>';
+$("results").innerHTML = '<p class="empty">{{msg_loading_dict}}</p>';
 /* Options panel starts open on desktop, collapsed under the "md" width (768px). */
 if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
 reflectDisabled();
@@ -523,7 +476,7 @@ setTimeout(() => {
   decode();
   $("meta").textContent = WORDS.length.toLocaleString() + " words · ready in " +
     Math.round(performance.now() - t0) + " ms";
-  $("results").innerHTML = '<p class="empty">Type the board letters to begin.</p>';
+  $("results").innerHTML = '<p class="empty">{{msg_prompt}}</p>';
   if ($("letters").value) run();
 }, 0);
 </script>

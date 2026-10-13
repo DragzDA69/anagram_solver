@@ -1,0 +1,175 @@
+/* Styles for the standalone single-file solver.
+
+   build_standalone.py inlines this file into index.html at build time. It
+   cannot be a <link>: the standalone has to stay one self-contained file that
+   works offline, from the Files app or a static host, with nothing to fetch.
+   Edit here, never in the built index.html, then rerun the build.
+
+   Sized for touch (16px text, 9px radii) where web/style.css is sized for a
+   desktop pointer; the two are deliberately separate. */
+
+:root{
+  --bg:#11131a; --panel:#181b24; --panel2:#1f2430; --line:#2b3140;
+  --ink:#e6e9f0; --dim:#9aa3b5; --faint:#6b7489;
+  --accent:#6ea8fe; --accent-ink:#0d1117; --bad:#ff8585;
+  --toast-fade:{{toast_fade_ms}}ms;
+}
+@media (prefers-color-scheme:light){
+  :root{
+    --bg:#f4f6fa; --panel:#fff; --panel2:#eef1f7; --line:#d9dfea;
+    --ink:#1a1f2b; --dim:#5a6479; --faint:#8a93a6;
+    --accent:#2f6fe4; --accent-ink:#fff; --bad:#c23b3b;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:860px;margin:0 auto;padding:14px 14px 48px}
+
+/* Centre, not baseline: the h1 starts with the icon, and a flex container
+   whose first item has no text baseline reports its bottom edge instead. */
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+header p span{display:inline-block}
+/* Same size and colour as the description beside the title. */
+.copyhint{margin:10px 2px 0;font-size:12px;color:var(--faint)}
+header h1{display:flex;align-items:center;gap:9px;margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em}
+/* Decorative: the name is right beside it, so it carries an empty alt. */
+.logo{width:22px;height:22px;flex:none;border-radius:5px}
+header h1 span{color:var(--faint);font-weight:400}
+header p{margin:0;font-size:12px;color:var(--faint)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+
+label.lbl{display:block;font-size:11px;font-weight:650;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.hint{display:block;margin-top:5px;font-size:12px;color:var(--faint)}
+
+/* 16px minimum stops iOS zooming the page on focus */
+input,select,button{font:inherit;font-size:16px}
+input[type=text],input[type=number],select{
+  width:100%;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;color:var(--ink);padding:11px 12px
+}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.entry{display:flex;gap:8px;align-items:stretch}
+#letters{
+  flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-size:24px;letter-spacing:.26em;padding:12px;text-transform:lowercase;min-width:0
+}
+.key{
+  flex:0 0 auto;width:52px;border:1px solid var(--line);border-radius:9px;
+  background:var(--panel2);color:var(--dim);font-size:20px;font-weight:650;cursor:pointer
+}
+.key:active{background:var(--accent);color:var(--accent-ink)}
+
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-size:14px;color:var(--dim);list-style:none;
+  display:flex;align-items:center;gap:7px;padding:4px 0;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"\25B8";transition:transform .15s;display:inline-block;color:var(--faint)}
+details[open] summary::before{transform:rotate(90deg)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.ctl.off{opacity:.4}
+
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;
+  border-top:1px solid var(--line);padding-top:12px}
+.toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;padding:4px 0}
+.toggle input{width:20px;height:20px;accent-color:var(--accent);margin:0}
+.toggle em{font-style:normal;font-size:12px;color:var(--faint)}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;color:var(--dim);
+  font-size:14px;padding:9px 14px;cursor:pointer;flex:1}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:650}
+
+
+/* the whole search panel collapses, to hand the screen over to results */
+details.card{padding:0}
+details.card>summary{
+  padding:14px;font-size:15px;font-weight:650;color:var(--ink);
+  display:flex;align-items:center;gap:10px;min-height:52px
+}
+details.card>summary::before{content:none}
+details.card>summary .rack{
+  flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-size:15px;letter-spacing:.2em;color:var(--dim);font-weight:400;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+details.card[open]>summary .rack{display:none}
+details.card>summary .chev{
+  margin-left:auto;color:var(--faint);font-size:15px;
+  display:inline-block;transition:transform .18s
+}
+details.card[open]>summary .chev{transform:rotate(180deg)}
+.panelbody{padding:0 14px 14px}
+
+#status{margin:16px 2px 0;font-size:14px;color:var(--dim);min-height:22px}
+#status.err{color:var(--bad)}
+
+.group{margin-top:16px}
+/* A length group is a <details>, like the search and options panels, so it
+   opens and closes without script. The divider is a real element rather than
+   ::after, which has to come last -- the chevron sits beyond it. */
+.group>summary{display:flex;align-items:center;gap:10px;margin:0 0 9px;
+  font-size:13px;font-weight:600;color:var(--dim);cursor:pointer;
+  user-select:none;list-style:none}
+.group>summary::-webkit-details-marker{display:none}
+.group>summary b{color:var(--ink);font-weight:650}
+.group>summary i{font-style:normal;color:var(--faint);font-weight:400}
+.group>summary .rule{flex:1;height:1px;background:var(--line)}
+.group>summary .chev{flex:none;color:var(--faint);font-size:15px;line-height:1;
+  transition:transform .18s}
+.group[open]>summary .chev{transform:rotate(180deg)}
+.group>summary:hover .chev,.group>summary:hover b{color:var(--accent)}
+
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.words .word{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5;
+  color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:border-color .12s,background .12s,transform .08s}
+.words .word:hover{border-color:var(--accent);background:var(--panel2)}
+.words .word:active{transform:scale(.95)}
+.words.flat{display:block;column-width:120px;column-gap:18px}
+.words.flat .word{display:block;width:100%;text-align:left;border:0;background:none;padding:2px 0}
+.words.flat .word:hover{background:none;color:var(--accent)}
+
+table.counts{border-collapse:collapse;font-size:15px;margin-top:14px;width:100%;max-width:280px}
+table.counts td{padding:7px 0;border-bottom:1px solid var(--line)}
+table.counts td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+table.counts tr:last-child td{font-weight:650;border-bottom:0}
+
+.empty{color:var(--faint);padding:22px 2px}
+kbd{font:inherit;font-size:11px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:4px;padding:0 4px}
+
+/* Copy confirmation, behaving like an Android toast: it slides and fades up
+   from the bottom, waits, then goes back down. The host never takes a pointer
+   event, so nothing underneath is ever blocked. */
+.toasts{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;
+  padding:0 16px calc(26px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.toast{display:flex;align-items:center;gap:7px;max-width:100%;
+  background:var(--accent);color:var(--accent-ink);border:1px solid transparent;
+  border-radius:9px;padding:10px 16px;
+  font-size:14px;font-weight:650;line-height:1.3;
+  box-shadow:0 8px 28px rgba(0,0,0,.3);pointer-events:none;
+  opacity:0;transform:translateY(28px);
+  transition:opacity var(--toast-fade) ease,
+    transform var(--toast-fade) cubic-bezier(.22,.8,.3,1)}
+.toast.show{opacity:1;transform:translateY(0)}
+/* A solid dark chip, a shade off the toast's own ink (--accent-ink is #0d1117
+   in the dark theme) rather than a wash of the accent underneath. Flat so it
+   holds the same colour in both themes; white on it runs about 17:1. */
+.toast code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;
+  color:#fff;background:#161b24;border:1px solid rgba(255,255,255,.12);
+  border-radius:5px;padding:1px 7px}
+@media (prefers-reduced-motion:reduce){
+  .toast{transform:none;transition:opacity .12s linear}
+  .toast.show{transform:none}
+}

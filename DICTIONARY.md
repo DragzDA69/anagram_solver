@@ -55,8 +55,8 @@ is plain ENABLE1.
 ## Reproducing
 
 `build_wordlist.py` pulls ENABLE1 from
-[dolph/dictionary](https://github.com/dolph/dictionary) and trims it to 4–12 letters
-(151,337 words, down from 172,823).
+[Peter Norvig's copy](https://norvig.com/ngrams/enable1.txt) and trims it to 4–12
+letters (151,334 words, down from 172,820).
 
 The bounds keep the file small enough to embed in the standalone page while discarding
 almost nothing useful. Words under 4 letters are mostly noise in anagram results, and a
@@ -64,6 +64,15 @@ rack of more than 12 tiles is unusual — the longest answer in the 8,816 harves
 8 letters, so 12 is already a wide cushion. `python build_wordlist.py --min 3 --max 15`
 widens the trim if you need it.
 
-The ENABLE1 copy was cross-checked against Peter Norvig's mirror: they differ by
-three words (`knickknack`, `razzmatazz`, `razzmatazzes`), all legitimate and all present in
-both SOWPODS and NWL2023, so the larger copy is used.
+### One caveat on reproducing
+
+The copies of ENABLE1 in circulation are not quite identical. The committed
+`wordlist.txt` (151,337 words) was built from
+[dolph/dictionary](https://github.com/dolph/dictionary), which carries three words
+Norvig's copy does not: `knickknack`, `razzmatazz`, `razzmatazzes`. All three are
+legitimate and present in both SOWPODS and NWL2023.
+
+That second source has since been dropped from `build_wordlist.py`, so a rebuild
+now yields 151,334 words and the three go missing. The committed list is the
+larger one and is left as it is; if you rebuild and want them back, build from the
+dolph copy with `--src` instead.

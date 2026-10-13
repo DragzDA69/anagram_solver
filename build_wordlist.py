@@ -6,6 +6,10 @@ compiled by Alan Beale. See DICTIONARY.md for why this list was chosen.
 Usage:
     python build_wordlist.py              # download ENABLE1 and rebuild
     python build_wordlist.py --src enable1.txt
+
+Note: the committed wordlist.txt was built from a different ENABLE1 copy that
+carries three words this one does not (knickknack, razzmatazz, razzmatazzes),
+so a rebuild from the network produces 151,334 words rather than 151,337.
 """
 
 import argparse
@@ -16,25 +20,21 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "wordlist.txt"
 
-# Mirrors of ENABLE1, tried in order.
-SOURCES = [
-    "https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt",
-    "https://norvig.com/ngrams/enable1.txt",
-]
+SOURCE = "https://norvig.com/ngrams/enable1.txt"
 
 MIN_LEN = 4
 MAX_LEN = 12
 
 
 def fetch() -> str:
-    errors = []
-    for url in SOURCES:
-        try:
-            with urllib.request.urlopen(url, timeout=60) as resp:
-                return resp.read().decode("utf-8")
-        except Exception as exc:  # noqa: BLE001 - any failure means try the next mirror
-            errors.append(f"  {url}\n    {exc}")
-    sys.exit("Could not download ENABLE1 from any mirror:\n" + "\n".join(errors))
+    try:
+        with urllib.request.urlopen(SOURCE, timeout=60) as resp:
+            return resp.read().decode("utf-8")
+    except Exception as exc:  # noqa: BLE001 - there is no fallback to try
+        sys.exit(
+            f"Could not download ENABLE1 from {SOURCE}\n    {exc}\n"
+            "Pass --src with a local copy to build without the network."
+        )
 
 
 def main() -> None:
