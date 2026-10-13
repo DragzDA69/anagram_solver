@@ -55,8 +55,75 @@ form {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 20px;
 }
+
+/* The whole search panel collapses, to hand the screen over to results. */
+#panel > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+#panel > summary::-webkit-details-marker { display: none; }
+#panel > summary .rack {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  font-weight: 400;
+  color: var(--ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#panel[open] > summary .rack { display: none; }
+#panel > summary .chev {
+  margin-left: auto;
+  display: inline-block;
+  color: var(--ink-faint);
+  font-size: 15px;
+  transition: transform 0.18s;
+}
+#panel[open] > summary .chev { transform: rotate(180deg); }
+.panelbody { padding: 0 20px 20px; }
+
+/* Options section inside the panel. */
+#opts {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+#opts > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+#opts > summary::-webkit-details-marker { display: none; }
+#opts > summary::before {
+  content: "\0025B8";
+  display: inline-block;
+  color: var(--ink-faint);
+  transition: transform 0.15s;
+}
+#opts[open] > summary::before { transform: rotate(90deg); }
+.optsrow { margin-top: 14px; }
 
 .label {
   display: block;
@@ -102,6 +169,7 @@ input:focus, select:focus, button:focus-visible {
 }
 
 .controls {
+  margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
   gap: 14px;

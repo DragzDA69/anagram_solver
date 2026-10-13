@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Words on Stream Solver</title>
+<title>Anagram  Solver</title>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -16,69 +16,87 @@
 <main>
   <form id="form" autocomplete="off">
 
-    <label class="letters-field">
-      <span class="label">Board letters</span>
-      <input id="letters" name="letters" type="text" inputmode="latin"
-             placeholder="he?ll" spellcheck="false" autofocus>
-      <span class="hint">Letters only. Use <kbd>?</kbd> for a tile that hasn't been revealed.</span>
-    </label>
+    <details class="card" id="panel" open>
+      <summary>
+        <span>Search</span>
+        <span class="rack" id="headRack"></span>
+        <span class="chev">&#9662;</span>
+      </summary>
 
-    <div class="controls">
+      <div class="panelbody">
 
-      <label class="ctl">
-        <span class="label">Slot lengths</span>
-        <input id="length" type="text" placeholder="4,5,7" spellcheck="false">
-        <span class="hint">Only these lengths</span>
-      </label>
+        <label class="letters-field">
+          <span class="label">Board letters</span>
+          <input id="letters" name="letters" type="text" inputmode="latin"
+                 placeholder="he?lpf" spellcheck="false" autofocus>
+          <span class="hint">Letters only. Use <kbd>?</kbd> for a tile that hasn't been revealed.</span>
+        </label>
 
-      <label class="ctl" id="minWrap">
-        <span class="label">Min length</span>
-        <input id="min" type="number" min="1" max="12" value="4">
-        <span class="hint">Shortest WOS answer is 4</span>
-      </label>
+        <details id="opts" open>
+          <summary>Options</summary>
 
-      <label class="ctl" id="maxWrap">
-        <span class="label">Max length</span>
-        <input id="max" type="number" min="1" max="12" placeholder="tiles">
-        <span class="hint">Defaults to tile count</span>
-      </label>
+          <div class="controls">
 
-      <label class="ctl">
-        <span class="label">Pattern</span>
-        <input id="pattern" type="text" placeholder="..t..n" spellcheck="false">
-        <span class="hint">Position filter, <kbd>.</kbd> = any</span>
-      </label>
+            <label class="ctl">
+              <span class="label">Slot lengths</span>
+              <input id="length" type="text" placeholder="4,5,7" spellcheck="false">
+              <span class="hint">Only these lengths</span>
+            </label>
 
-      <label class="ctl">
-        <span class="label">Limit per group</span>
-        <input id="limit" type="number" min="0" placeholder="all">
-        <span class="hint">0 or blank shows all</span>
-      </label>
+            <label class="ctl" id="minWrap">
+              <span class="label">Min length</span>
+              <input id="min" type="number" min="1" max="12" value="4">
+              <span class="hint">Shortest WOS answer is 4</span>
+            </label>
 
-      <label class="ctl">
-        <span class="label">Dictionary</span>
-        <select id="dict"></select>
-        <span class="hint">Word list to search</span>
-      </label>
+            <label class="ctl" id="maxWrap">
+              <span class="label">Max length</span>
+              <input id="max" type="number" min="1" max="12" placeholder="tiles">
+              <span class="hint">Defaults to tile count</span>
+            </label>
 
-    </div>
+            <label class="ctl">
+              <span class="label">Pattern</span>
+              <input id="pattern" type="text" placeholder="..t..n" spellcheck="false">
+              <span class="hint">Position filter, <kbd>.</kbd> = any</span>
+            </label>
 
-    <div class="switches">
-      <label class="toggle">
-        <input type="checkbox" id="exact">
-        <span>Big word only <em>uses every tile</em></span>
-      </label>
+            <label class="ctl">
+              <span class="label">Limit per group</span>
+              <input id="limit" type="number" min="0" placeholder="all">
+              <span class="hint">0 or blank shows all</span>
+            </label>
 
-      <div class="seg" role="group" aria-label="View">
-        <button type="button" class="on" data-view="grouped">Grouped</button>
-        <button type="button" data-view="flat">Flat</button>
-        <button type="button" data-view="count">Counts</button>
+            <label class="ctl">
+              <span class="label">Dictionary</span>
+              <select id="dict"></select>
+              <span class="hint">Word list to search</span>
+            </label>
+
+          </div>
+
+          <div class="optsrow">
+            <label class="toggle">
+              <input type="checkbox" id="exact">
+              <span>Big word only <em>uses every tile</em></span>
+            </label>
+          </div>
+        </details>
+
+        <div class="switches">
+          <div class="seg" role="group" aria-label="View">
+            <button type="button" class="on" data-view="grouped">Grouped</button>
+            <button type="button" data-view="flat">Flat</button>
+            <button type="button" data-view="count">Counts</button>
+          </div>
+
+          <div class="spacer"></div>
+          <button type="button" id="copy" class="ghost">Copy words</button>
+          <button type="submit" id="go">Solve</button>
+        </div>
+
       </div>
-
-      <div class="spacer"></div>
-      <button type="button" id="copy" class="ghost">Copy words</button>
-      <button type="submit" id="go">Solve</button>
-    </div>
+    </details>
   </form>
 
   <section id="status" class="status" aria-live="polite"></section>

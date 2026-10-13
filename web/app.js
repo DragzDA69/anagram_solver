@@ -22,6 +22,7 @@ letters.addEventListener("input", () => {
     const removed = before.length - clean.length;
     letters.setSelectionRange(start - removed, start - removed);
   }
+  syncHead();
   schedule();
 });
 
@@ -68,6 +69,13 @@ function reflectDisabled() {
   for (const id of ["minWrap", "maxWrap"]) {
     $(id).classList.toggle("off", exact || byLength);
   }
+}
+
+/** Mirror the letters into the panel header, so a collapsed panel still shows
+    what is being solved. */
+function syncHead() {
+  const v = letters.value;
+  $("headRack").textContent = v ? [...v].join(" ") : "no letters yet";
 }
 
 function schedule() {
@@ -194,6 +202,9 @@ function chip(word) {
 // --- startup --------------------------------------------------------------
 
 (async function init() {
+  /* Options start open on desktop, collapsed under the "md" width (768px). */
+  if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
+  syncHead();
   reflectDisabled();
   try {
     const meta = await (await fetch("/api/dicts")).json();
@@ -205,7 +216,7 @@ function chip(word) {
       if (d.name === meta.active) o.selected = true;
       sel.append(o);
     }
-    $("dictInfo").textContent = `${meta.active} · ${meta.activeWords.toLocaleString()} words`;
+    $("dictInfo").textContent = `Solves anagrams using the selected dictionary. Handles wildcard [ ? * ] characters.`;
   } catch {
     flash("Could not reach the local server.", true);
   }

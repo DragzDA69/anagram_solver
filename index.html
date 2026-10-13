@@ -151,14 +151,14 @@ kbd{font:inherit;font-size:11px;background:var(--panel2);border:1px solid var(--
   <div class="panelbody">
   <label class="lbl" for="letters">Board letters</label>
   <div class="entry">
-    <input id="letters" type="text" placeholder="he?ll"
+    <input id="letters" type="text" placeholder="he?lpf"
            autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
     <button class="key" id="addWild" type="button" title="Insert a wildcard">?</button>
     <button class="key" id="clear" type="button" title="Clear">&times;</button>
   </div>
   <span class="hint">Letters only. <kbd>?</kbd> is a tile that hasn't been revealed.</span>
 
-  <details id="opts">
+  <details id="opts" open>
     <summary>Options</summary>
     <div class="grid">
       <div class="ctl" id="lenWrap">
@@ -151850,6 +151850,8 @@ $("copy").addEventListener("click", async () => {
 
 /* Decode after first paint so the page is visible straight away. */
 $("results").innerHTML = '<p class="empty">Loading dictionary&hellip;</p>';
+/* Options panel starts open on desktop, collapsed under the "md" width (768px). */
+if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
 reflectDisabled();
 syncHead();
 setTimeout(() => {
