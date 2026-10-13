@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WOS Solver">
+<meta name="theme-color" content="#11131a">
+<meta name="color-scheme" content="dark light">
+<title>Words on Stream Solver</title>
+<style>
+:root{
+  --bg:#11131a; --panel:#181b24; --panel2:#1f2430; --line:#2b3140;
+  --ink:#e6e9f0; --dim:#9aa3b5; --faint:#6b7489;
+  --accent:#6ea8fe; --accent-ink:#0d1117; --bad:#ff8585;
+}
+@media (prefers-color-scheme:light){
+  :root{
+    --bg:#f4f6fa; --panel:#fff; --panel2:#eef1f7; --line:#d9dfea;
+    --ink:#1a1f2b; --dim:#5a6479; --faint:#8a93a6;
+    --accent:#2f6fe4; --accent-ink:#fff; --bad:#c23b3b;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:860px;margin:0 auto;padding:14px 14px 48px}
+
+header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+header h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em}
+header h1 span{color:var(--faint);font-weight:400}
+header p{margin:0;font-size:12px;color:var(--faint)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+
+label.lbl{display:block;font-size:11px;font-weight:650;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.hint{display:block;margin-top:5px;font-size:12px;color:var(--faint)}
+
+/* 16px minimum stops iOS zooming the page on focus */
+input,select,button{font:inherit;font-size:16px}
+input[type=text],input[type=number],select{
+  width:100%;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;color:var(--ink);padding:11px 12px
+}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.entry{display:flex;gap:8px;align-items:stretch}
+#letters{
+  flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-size:24px;letter-spacing:.26em;padding:12px;text-transform:lowercase;min-width:0
+}
+.key{
+  flex:0 0 auto;width:52px;border:1px solid var(--line);border-radius:9px;
+  background:var(--panel2);color:var(--dim);font-size:20px;font-weight:650;cursor:pointer
+}
+.key:active{background:var(--accent);color:var(--accent-ink)}
+
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-size:14px;color:var(--dim);list-style:none;
+  display:flex;align-items:center;gap:7px;padding:4px 0;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"\25B8";transition:transform .15s;display:inline-block;color:var(--faint)}
+details[open] summary::before{transform:rotate(90deg)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.ctl.off{opacity:.4}
+
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;
+  border-top:1px solid var(--line);padding-top:12px}
+.toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px;padding:4px 0}
+.toggle input{width:20px;height:20px;accent-color:var(--accent);margin:0}
+.toggle em{font-style:normal;font-size:12px;color:var(--faint)}
+.grow{flex:1}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;color:var(--dim);
+  font-size:14px;padding:9px 14px;cursor:pointer;flex:1}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:650}
+
+.ghost{background:var(--panel2);color:var(--dim);border:1px solid var(--line);
+  border-radius:9px;padding:10px 16px;font-weight:600;cursor:pointer}
+
+/* the whole search panel collapses, to hand the screen over to results */
+details.card{padding:0}
+details.card>summary{
+  padding:14px;font-size:15px;font-weight:650;color:var(--ink);
+  display:flex;align-items:center;gap:10px;min-height:52px
+}
+details.card>summary::before{content:none}
+details.card>summary .rack{
+  flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-size:15px;letter-spacing:.2em;color:var(--dim);font-weight:400;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+details.card[open]>summary .rack{display:none}
+details.card>summary .chev{
+  margin-left:auto;color:var(--faint);font-size:15px;
+  display:inline-block;transition:transform .18s
+}
+details.card[open]>summary .chev{transform:rotate(180deg)}
+.panelbody{padding:0 14px 14px}
+
+#status{margin:16px 2px 0;font-size:14px;color:var(--dim);min-height:22px}
+#status.err{color:var(--bad)}
+
+.group{margin-top:16px}
+.group h2{margin:0 0 9px;font-size:13px;font-weight:600;color:var(--dim);
+  display:flex;align-items:center;gap:10px}
+.group h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.group h2 b{color:var(--ink);font-weight:650}
+.group h2 i{font-style:normal;color:var(--faint);font-weight:400}
+
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.words span{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;
+  background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:5px 10px}
+.words.flat{display:block;column-width:120px;column-gap:18px}
+.words.flat span{display:block;border:0;background:none;padding:2px 0}
+
+table.counts{border-collapse:collapse;font-size:15px;margin-top:14px;width:100%;max-width:280px}
+table.counts td{padding:7px 0;border-bottom:1px solid var(--line)}
+table.counts td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+table.counts tr:last-child td{font-weight:650;border-bottom:0}
+
+.empty{color:var(--faint);padding:22px 2px}
+kbd{font:inherit;font-size:11px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Words on Stream <span>Solver</span></h1>
+  <p id="meta">loading dictionary&hellip;</p>
+</header>
+
+<details class="card" id="panel" open>
+  <summary>
+    <span>Search</span>
+    <span class="rack" id="headRack"></span>
+    <span class="chev">&#9662;</span>
+  </summary>
+  <div class="panelbody">
+  <label class="lbl" for="letters">Board letters</label>
+  <div class="entry">
+    <input id="letters" type="text" placeholder="he?ll"
+           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    <button class="key" id="addWild" type="button" title="Insert a wildcard">?</button>
+    <button class="key" id="clear" type="button" title="Clear">&times;</button>
+  </div>
+  <span class="hint">Letters only. <kbd>?</kbd> is a tile that hasn't been revealed.</span>
+
+  <details id="opts">
+    <summary>Options</summary>
+    <div class="grid">
+      <div class="ctl" id="lenWrap">
+        <label class="lbl" for="length">Slot lengths</label>
+        <input id="length" type="text" inputmode="numeric" placeholder="4,5,7" autocomplete="off">
+        <span class="hint">Only these lengths</span>
+      </div>
+      <div class="ctl" id="minWrap">
+        <label class="lbl" for="min">Min length</label>
+        <input id="min" type="number" inputmode="numeric" min="1" max="12" value="4">
+      </div>
+      <div class="ctl" id="maxWrap">
+        <label class="lbl" for="max">Max length</label>
+        <input id="max" type="number" inputmode="numeric" min="1" max="12" placeholder="tiles">
+      </div>
+      <div class="ctl">
+        <label class="lbl" for="pattern">Pattern</label>
+        <input id="pattern" type="text" placeholder="..t..n"
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <span class="hint"><kbd>.</kbd> = any letter</span>
+      </div>
+      <div class="ctl">
+        <label class="lbl" for="limit">Limit per group</label>
+        <input id="limit" type="number" inputmode="numeric" min="0" placeholder="all">
+      </div>
+    </div>
+
+    <div class="row">
+      <label class="toggle">
+        <input type="checkbox" id="exact">
+        <span>Big word only <em>uses every tile</em></span>
+      </label>
+    </div>
+  </details>
+
+  <div class="row">
+    <div class="seg" role="group" aria-label="View">
+      <button type="button" class="on" data-view="grouped">Grouped</button>
+      <button type="button" data-view="flat">Flat</button>
+      <button type="button" data-view="count">Counts</button>
+    </div>
+    <div class="grow"></div>
+    <button class="ghost" id="copy" type="button">Copy</button>
+  </div>
+  </div>
+</details>
+
+<p id="status" aria-live="polite"></p>
+<div id="results"></div>
+
+</div>
+
+<script id="wl" type="text/plain">__WORDLIST__</script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const MAX_SHOW = 3000;
+
+let WORDS = null, MASK = null, LEN = null, LONGEST = 0;
+let view = "grouped", lastWords = [], timer = null;
+
+/* ---- dictionary: decode the front-coded list ------------------------- */
+/* Each line is <shared-prefix-length as one char><the rest of the word>. */
+function decode() {
+  const raw = $("wl").textContent;
+  const lines = raw.split("\n");
+  const n = lines.length;
+  const words = new Array(n);
+  const mask = new Int32Array(n);
+  const len = new Uint8Array(n);
+  let prev = "", longest = 0;
+  for (let i = 0; i < n; i++) {
+    const line = lines[i];
+    prev = prev.slice(0, line.charCodeAt(0) - 48) + line.slice(1);
+    words[i] = prev;
+    let m = 0;
+    for (let j = 0; j < prev.length; j++) m |= 1 << (prev.charCodeAt(j) - 97);
+    mask[i] = m;
+    len[i] = prev.length;
+    if (prev.length > longest) longest = prev.length;
+  }
+  WORDS = words; MASK = mask; LEN = len; LONGEST = longest;
+}
+
+function popcount(n) {
+  n = n - ((n >> 1) & 0x55555555);
+  n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
+  return (((n + (n >> 4)) & 0x0f0f0f0f) * 0x01010101) >> 24;
+}
+
+/* ---- the solver: same rules as main.py ------------------------------- */
+function parseRack(raw) {
+  const rack = new Int32Array(26);
+  let wild = 0;
+  for (const ch of raw.toLowerCase()) {
+    if (ch === "?") wild++;
+    else if (ch >= "a" && ch <= "z") rack[ch.charCodeAt(0) - 97]++;
+    else if (" ,.-_".includes(ch)) continue;
+    else throw new Error("Invalid character in letters: '" + ch + "' (use a-z and ?)");
+  }
+  return { rack, wild };
+}
+
+function solve(rack, wild, wanted) {
+  let rackMask = 0;
+  for (let i = 0; i < 26; i++) if (rack[i]) rackMask |= 1 << i;
+  const unavailable = ~rackMask;
+  const seen = new Int32Array(26);
+  const found = new Map();
+
+  for (let i = 0; i < WORDS.length; i++) {
+    const L = LEN[i];
+    if (!wanted.has(L)) continue;
+    if (popcount(MASK[i] & unavailable) > wild) continue;
+
+    const w = WORDS[i];
+    let deficit = 0;
+    for (let j = 0; j < L; j++) {
+      const c = w.charCodeAt(j) - 97;
+      if (++seen[c] > rack[c]) deficit++;
+    }
+    for (let j = 0; j < L; j++) seen[w.charCodeAt(j) - 97] = 0;
+    if (deficit > wild) continue;
+
+    let bucket = found.get(L);
+    if (!bucket) found.set(L, bucket = []);
+    bucket.push(w);
+  }
+  return found;
+}
+
+/* Which lengths to search; mirrors choose_lengths() in main.py. */
+function chooseLengths(opts, tiles) {
+  const notes = [];
+  if (opts.exact) {
+    if (tiles > LONGEST) return { set: new Set(), notes: ["no word is " + tiles + " letters long"] };
+    return { set: new Set([tiles]), notes };
+  }
+  if (opts.length) {
+    const parts = opts.length.replace(/\s+/g, ",").split(",").filter(Boolean);
+    const wanted = [];
+    for (const p of parts) {
+      if (!/^\d+$/.test(p)) throw new Error("Invalid length value: '" + opts.length + "' (expected e.g. 4,5,7)");
+      wanted.push(parseInt(p, 10));
+    }
+    const over = wanted.filter((n) => n > tiles);
+    if (over.length) notes.push(over.join(", ") + " exceeds the " + tiles + " tiles available");
+    return { set: new Set(wanted.filter((n) => n >= 1 && n <= tiles)), notes };
+  }
+  const upper = Math.min(opts.max || tiles, tiles, LONGEST);
+  const set = new Set();
+  for (let n = Math.max(opts.min, 1); n <= upper; n++) set.add(n);
+  return { set, notes };
+}
+
+/* ---- UI --------------------------------------------------------------- */
+function flash(msg, bad) {
+  $("status").textContent = msg;
+  $("status").classList.toggle("err", !!bad);
+}
+
+/* Mirror the letters into the panel header, so a collapsed panel still shows
+   what is being solved. */
+function syncHead() {
+  const v = $("letters").value;
+  $("headRack").textContent = v ? [...v].join(" ") : "no letters yet";
+}
+
+function reflectDisabled() {
+  const exact = $("exact").checked;
+  const byLength = $("length").value.trim() !== "";
+  $("lenWrap").classList.toggle("off", exact);
+  $("minWrap").classList.toggle("off", exact || byLength);
+  $("maxWrap").classList.toggle("off", exact || byLength);
+}
+
+function run() {
+  const raw = $("letters").value.trim();
+  const results = $("results");
+  lastWords = [];
+  if (!WORDS) return;
+  if (!raw) {
+    results.innerHTML = '<p class="empty">Type the board letters to begin.</p>';
+    flash("");
+    return;
+  }
+
+  let rack, wild, lengths;
+  try {
+    ({ rack, wild } = parseRack(raw));
+    const tiles = rack.reduce((a, b) => a + b, 0) + wild;
+    if (!tiles) throw new Error("No letters given.");
+    lengths = chooseLengths({
+      exact: $("exact").checked,
+      length: $("length").value.trim(),
+      min: parseInt($("min").value, 10) || 4,
+      max: parseInt($("max").value, 10) || 0,
+    }, tiles);
+    var tileCount = tiles;
+  } catch (e) {
+    results.innerHTML = "";
+    flash(e.message, true);
+    return;
+  }
+
+  const t0 = performance.now();
+  const found = solve(rack, wild, lengths.set);
+  const ms = Math.round(performance.now() - t0);
+
+  const pat = $("pattern").value.trim();
+  if (pat) {
+    let re;
+    try {
+      re = new RegExp("^" + pat.toLowerCase().replace(/[?.]/g, ".") + "$");
+    } catch {
+      flash("Invalid pattern.", true);
+      return;
+    }
+    for (const [L, words] of [...found]) {
+      const kept = words.filter((w) => re.test(w));
+      if (kept.length) found.set(L, kept); else found.delete(L);
+    }
+  }
+
+  const limit = parseInt($("limit").value, 10) || 0;
+  let total = 0;
+  for (const words of found.values()) total += words.length;
+
+  const groups = [];
+  let shown = 0, capped = false;
+  for (const L of [...found.keys()].sort((a, b) => b - a)) {
+    const words = found.get(L);
+    let take = limit > 0 ? words.slice(0, limit) : words;
+    if (shown + take.length > MAX_SHOW) { take = take.slice(0, MAX_SHOW - shown); capped = true; }
+    shown += take.length;
+    groups.push({ length: L, count: words.length, words: take });
+    if (capped) break;
+  }
+
+  const letters = tileCount - wild;
+  let summary = total.toLocaleString() + " word" + (total === 1 ? "" : "s") +
+    " from " + letters + " letter" + (letters === 1 ? "" : "s");
+  if (wild) summary += " + " + wild + " wildcard" + (wild === 1 ? "" : "s");
+  summary += " · " + ms + " ms";
+  for (const n of lengths.notes) summary += " · " + n;
+  if (capped) summary += " · showing first " + MAX_SHOW.toLocaleString();
+  flash(summary);
+
+  render(groups, total);
+}
+
+function chip(w) { const s = document.createElement("span"); s.textContent = w; return s; }
+
+function render(groups, total) {
+  const results = $("results");
+  lastWords = groups.flatMap((g) => g.words);
+  if (!total) { results.innerHTML = '<p class="empty">No words match.</p>'; return; }
+
+  if (view === "count") {
+    results.innerHTML = "<table class='counts'>" +
+      groups.map((g) => "<tr><td>" + g.length + " letters</td><td>" + g.count.toLocaleString() + "</td></tr>").join("") +
+      "<tr><td>total</td><td>" + total.toLocaleString() + "</td></tr></table>";
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  if (view === "flat") {
+    const box = document.createElement("div");
+    box.className = "words flat";
+    box.append(...lastWords.map(chip));
+    frag.append(box);
+  } else {
+    for (const g of groups) {
+      const sec = document.createElement("section");
+      sec.className = "group";
+      const h = document.createElement("h2");
+      h.innerHTML = "<b>" + g.length + " letters</b> <i>" + g.count.toLocaleString() +
+        (g.words.length < g.count ? ", showing " + g.words.length : "") + "</i>";
+      const box = document.createElement("div");
+      box.className = "words";
+      box.append(...g.words.map(chip));
+      sec.append(h, box);
+      frag.append(sec);
+    }
+  }
+  results.replaceChildren(frag);
+}
+
+function schedule() { clearTimeout(timer); timer = setTimeout(run, 160); }
+
+/* ---- wiring ----------------------------------------------------------- */
+$("letters").addEventListener("input", (e) => {
+  const el = e.target, pos = el.selectionStart, before = el.value;
+  const clean = before.toLowerCase().replace(/[^a-z?]/g, "");
+  if (clean !== before) {
+    el.value = clean;
+    const back = before.length - clean.length;
+    el.setSelectionRange(pos - back, pos - back);
+  }
+  syncHead();
+  schedule();
+});
+
+$("addWild").addEventListener("click", () => {
+  const el = $("letters");
+  const at = el.selectionStart ?? el.value.length;
+  el.value = el.value.slice(0, at) + "?" + el.value.slice(el.selectionEnd ?? at);
+  el.setSelectionRange(at + 1, at + 1);
+  el.focus();
+  syncHead();
+  run();
+});
+
+$("clear").addEventListener("click", () => {
+  $("letters").value = "";
+  $("letters").focus();
+  syncHead();
+  run();
+});
+
+$("pattern").addEventListener("input", (e) => {
+  e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
+});
+
+for (const id of ["length", "min", "max", "pattern", "limit", "exact"]) {
+  $(id).addEventListener("input", () => { reflectDisabled(); schedule(); });
+}
+
+document.querySelectorAll(".seg button").forEach((b) => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".seg button").forEach((x) => x.classList.remove("on"));
+    b.classList.add("on");
+    view = b.dataset.view;
+    run();
+  });
+});
+
+$("copy").addEventListener("click", async () => {
+  if (!lastWords.length) return;
+  const text = lastWords.join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    flash("Copied " + lastWords.length + " words");
+  } catch {
+    const ta = document.createElement("textarea");   // iOS fallback
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    try { document.execCommand("copy"); flash("Copied " + lastWords.length + " words"); }
+    catch { flash("Could not copy", true); }
+    ta.remove();
+  }
+});
+
+/* Decode after first paint so the page is visible straight away. */
+$("results").innerHTML = '<p class="empty">Loading dictionary&hellip;</p>';
+reflectDisabled();
+syncHead();
+setTimeout(() => {
+  const t0 = performance.now();
+  decode();
+  $("meta").textContent = WORDS.length.toLocaleString() + " words · ready in " +
+    Math.round(performance.now() - t0) + " ms";
+  $("results").innerHTML = '<p class="empty">Type the board letters to begin.</p>';
+  if ($("letters").value) run();
+}, 0);
+</script>
+</body>
+</html>
