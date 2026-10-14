@@ -112,7 +112,10 @@
   </form>
 
   <section id="status" class="status" aria-live="polite"></section>
-  <p class="dict copyhint" id="copyHint" hidden>{{hint_click_copy}}</p>
+  <div class="copyrow" id="copyRow" hidden>
+    <p class="dict copyhint" id="copyHint">{{hint_click_copy}}</p>
+    <button type="button" class="linkbtn" id="toggleAll" hidden>{{btn_collapse_all}}</button>
+  </div>
   <section id="results" class="results"></section>
 </main>
 

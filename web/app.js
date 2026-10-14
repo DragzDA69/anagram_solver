@@ -100,7 +100,7 @@ function flash(msg, bad) {
 async function solve() {
   const raw = letters.value.trim();
   results.innerHTML = "";
-  $("copyHint").hidden = true;
+  $("copyRow").hidden = true;
   lastWords = [];
 
   if (!raw) {
@@ -160,7 +160,7 @@ async function solve() {
 
 function render(data) {
   const { rack, groups, total, notes } = data;
-  $("copyHint").hidden = true;
+  $("copyRow").hidden = true;
   lastWords = groups.flatMap((g) => g.words);
 
   let summary = `${total.toLocaleString()} word${total === 1 ? "" : "s"} from `
@@ -186,7 +186,7 @@ function render(data) {
     return;
   }
 
-  $("copyHint").hidden = false;   // past the empty and Counts cases: chips follow
+  $("copyRow").hidden = false;   // past the empty and Counts cases: chips follow
   const frag = document.createDocumentFragment();
 
   if (view === "flat") {
@@ -202,6 +202,7 @@ function render(data) {
       sec.addEventListener("toggle", () => {
         if (sec.open) collapsed.delete(g.length);
         else collapsed.add(g.length);
+        syncToggleAll();
       });
 
       const h = document.createElement("summary");
@@ -219,7 +220,29 @@ function render(data) {
   }
 
   results.replaceChildren(frag);
+  syncToggleAll();
 }
+
+/** Show the fold toggle only where there is something to fold, and name it for
+    the action it would perform. "Collapse All" needs every group open; one
+    closed group is enough to make the useful move "Expand All". */
+function syncToggleAll() {
+  const btn = $("toggleAll");
+  const groups = results.querySelectorAll("details.group");
+  btn.hidden = !groups.length;
+  if (!groups.length) return;
+  const allOpen = [...groups].every((sec) => sec.open);
+  btn.textContent = allOpen ? "{{btn_collapse_all}}" : "{{btn_expand_all}}";
+}
+
+$("toggleAll").addEventListener("click", () => {
+  const groups = [...results.querySelectorAll("details.group")];
+  const open = !groups.every((sec) => sec.open);
+  // Each assignment fires a toggle event, which is what keeps `collapsed` --
+  // and so the next render -- in step with the screen.
+  for (const sec of groups) sec.open = open;
+  syncToggleAll();
+});
 
 function chip(word) {
   const el = document.createElement("button");

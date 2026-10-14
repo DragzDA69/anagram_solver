@@ -93,6 +93,8 @@ VALUES: dict[str, object] = {
     # -- messages the scripts show ----------------------------------------
     "msg_prompt": "Enter the anagram letters to begin.",
     "hint_click_copy": "Click any word to copy it to the clipboard.",
+    "btn_collapse_all": "Collapse All",
+    "btn_expand_all": "Expand All",
     "msg_no_match": "No words match.",
     "msg_loading_dict": "Loading dictionary&hellip;",
     "msg_copy_failed": "Clipboard blocked by the browser",

@@ -189,7 +189,7 @@ def get_help_header():
         blank,
         title_border_line(box["v"], box["v"], " ", [
             "Give it a pool of letters and it lists every word that can be spelled",
-            "from them, grouped longest first. '?' stands for a tile you have not",
+            "from them, grouped longest first. '?' stands for a letter you have not",
             "identified yet.",
             " ",
             "The same solver runs on the command line and behind the web page.",

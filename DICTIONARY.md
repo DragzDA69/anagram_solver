@@ -1,6 +1,6 @@
 # Which word list does this solver use?
 
-`wordlist.txt` is ENABLE1, trimmed to 4–12 letters. That choice wasn't arbitrary: several
+`wordlist.txt` is the complete ENABLE1 list, with all word lengths. That choice wasn't arbitrary: several
 candidate lists were tested against a corpus of real, known-good answers, and ENABLE1 won.
 This file records the testing, so the choice can be re-checked rather than taken on faith.
 
@@ -54,25 +54,23 @@ is plain ENABLE1.
 
 ## Reproducing
 
-`build_wordlist.py` pulls ENABLE1 from
-[Peter Norvig's copy](https://norvig.com/ngrams/enable1.txt) and trims it to 4–12
-letters (151,334 words, down from 172,820).
+Run `python main.py update` to download ENABLE1 from
+[Peter Norvig's copy](https://norvig.com/ngrams/enable1.txt) and save all words
+to `wordlist.txt`. `python build_wordlist.py` runs the same updater directly.
 
-The bounds keep the file small enough to embed in the standalone page while discarding
-almost nothing useful. Words under 4 letters are mostly noise in anagram results, and a
-rack of more than 12 tiles is unusual — the longest answer in the 8,816 harvested is
-8 letters, so 12 is already a wide cushion. `python build_wordlist.py --min 3 --max 15`
-widens the trim if you need it.
+The updater does not trim by length: the solver's min/max options control the
+results (the default minimum remains 4). Use `python main.py update --src enable1.txt`
+to update from a local copy without internet. Failed updates leave the existing
+list unchanged. Restart a running local server to reload it, and run
+`python build_standalone.py` to include the new list in the standalone page.
 
 ### One caveat on reproducing
 
-The copies of ENABLE1 in circulation are not quite identical. The committed
-`wordlist.txt` (151,337 words) was built from
+The copies of ENABLE1 in circulation are not quite identical. The original bundled
+list was trimmed to 4–12 letters (151,337 words) and built from
 [dolph/dictionary](https://github.com/dolph/dictionary), which carries three words
 Norvig's copy does not: `knickknack`, `razzmatazz`, `razzmatazzes`. All three are
 legitimate and present in both SOWPODS and NWL2023.
 
-That second source has since been dropped from `build_wordlist.py`, so a rebuild
-now yields 151,334 words and the three go missing. The committed list is the
-larger one and is left as it is; if you rebuild and want them back, build from the
-dolph copy with `--src` instead.
+The updater uses Norvig's copy, so those three entries are not included in the
+current bundled list. To use the dolph copy instead, supply it with `--src`.

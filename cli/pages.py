@@ -27,12 +27,14 @@ SUMMARIES = {
     "solve": "Find every word spellable from the board letters.",
     "run": "Start the local web server and open the page in a browser.",
     "open": "Open the hosted page in a browser.",
+    "update": "Update the local dictionary with the complete ENABLE1 word list.",
 }
 
 USAGE = {
     "solve": "<letters> [--args]",
     "run": "",
     "open": "",
+    "update": "[--src <file>]",
 }
 
 
@@ -75,6 +77,7 @@ def print_top_level(site_url):
         colored('> python main.py solve "caution" -l 4,5,7', BRIGHT),
         colored("> python main.py run", BRIGHT),
         colored("> python main.py open", BRIGHT),
+        colored("> python main.py update", BRIGHT),
     ])
 
     print_lines("Help Examples:", [
@@ -82,6 +85,7 @@ def print_top_level(site_url):
         colored("> python main.py solve -h", BRIGHT),
         colored("> python main.py run -h", BRIGHT),
         colored("> python main.py open -h", BRIGHT),
+        colored("> python main.py update -h", BRIGHT),
     ])
 
 
@@ -113,7 +117,7 @@ def print_solve(parser):
     examples = [
         ('> python main.py "he?lpf"', "every word from  h e ? l l"),
         ('> python main.py "caution" -l 4,5,7', "only the word lengths you need"),
-        ('> python main.py "caution" -e', "the big word (uses every tile)"),
+        ('> python main.py "caution" -e', "the big word (uses every letter)"),
         ('> python main.py "ca?tion" -p "..t..n"', "a pattern showing  _ _ t _ _ n"),
         ("> python main.py solve open", "letters that spell a command name"),
     ]
@@ -178,4 +182,28 @@ def print_open(parser, site_url):
         "",
         colored("For the local copy instead:", SECONDARY),
         colored("> python main.py run", BRIGHT),
+    ])
+
+
+def print_update(parser):
+    rows = option_rows(parser)
+    print_command_header("update", summary=[
+        SUMMARIES["update"],
+        "Keeps every word length; use solve's min/max options to filter results.",
+    ], option_args=[label.split(",")[0] for label, _ in rows] + ["-h"])
+
+    print_lines("Usage:", [
+        colored("> python main.py update", BRIGHT),
+        colored("> python main.py update --src enable1.txt", BRIGHT),
+    ])
+    width = options_width(rows)
+    print_options(rows, width=width)
+    print("")
+    print_global_options(width=width)
+    print("")
+    print_lines("Notes:", [
+        colored("Needs internet unless --src supplies a local ENABLE1 file.", SECONDARY),
+        colored("A failed update leaves the existing word list unchanged.", SECONDARY),
+        colored("Restart the local server to reload the updated dictionary.", SECONDARY),
+        colored("To refresh the standalone page: python build_standalone.py", SECONDARY),
     ])

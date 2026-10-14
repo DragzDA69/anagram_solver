@@ -7,7 +7,7 @@ stands for any one letter, for a tile that has not been revealed yet.
 
     python main.py "he?lpf"        ->  hell, help, hello, ...
 
-Dictionary: ENABLE1, 4-12 letters (see DICTIONARY.md).
+Dictionary: complete ENABLE1 list (see DICTIONARY.md).
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def load_index(path: Path) -> dict:
     except FileNotFoundError:
         raise FileNotFoundError(
             "Dictionary not found: {}\n"
-            "Run 'python build_wordlist.py' to create it.".format(path)
+            "Run 'python main.py update' to create it.".format(path)
         ) from None
 
     by_length: dict = {}
@@ -196,7 +196,7 @@ def render(found: dict, args, rack_desc: str, dict_size: int) -> None:
 # CLI
 # --------------------------------------------------------------------------- #
 
-COMMANDS = ("solve", "run", "open")
+COMMANDS = ("solve", "run", "open", "update")
 HELP_FLAGS = ("-h", "--help")
 
 
@@ -210,6 +210,8 @@ def show_help(command, parser) -> None:
         pages.print_open(parser, SITE_URL)
     elif command == "solve":
         pages.print_solve(parser)
+    elif command == "update":
+        pages.print_update(parser)
     else:
         pages.print_top_level(SITE_URL)
 
@@ -226,6 +228,17 @@ def parse_args(argv=None) -> argparse.Namespace:
     explicit = bool(argv) and argv[0].lower() in COMMANDS
     command = argv.pop(0).lower() if explicit else "solve"
 
+    if command == "update":
+        from build_wordlist import create_parser
+
+        ap = create_parser(prog="main.py update", add_help=False)
+        if any(arg in HELP_FLAGS for arg in argv):
+            show_help(command, ap)
+            raise SystemExit(0)
+        args = ap.parse_args(argv)
+        args.command = command
+        return args
+
     # add_help=False: argparse's own formatter is replaced by cli/pages.py, but
     # the parser still owns the option list those pages print.
     ap = argparse.ArgumentParser(prog="main.py", add_help=False)
@@ -237,7 +250,7 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("-M", "--max", type=int, dest="max_len",
                     help="maximum length (default: number of tiles)")
     ap.add_argument("-e", "--exact", action="store_true",
-                    help="only words using every tile (the big word)")
+                    help="only words using every letter (the big word)")
     ap.add_argument("-p", "--pattern",
                     help="positional filter; '.' or '?' is any letter, e.g. 'h.ll.'")
     ap.add_argument("-x", "--exclude", default="", metavar="LETTERS",
@@ -299,6 +312,12 @@ def choose_lengths(args, tiles: int, longest: int):
 
 def main(argv=None) -> None:
     args = parse_args(argv)
+
+    if args.command == "update":
+        from build_wordlist import update_dictionary
+
+        update_dictionary(args.src)
+        return
 
     if args.command == "open":
         print("Opening {}".format(SITE_URL))
