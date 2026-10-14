@@ -5,7 +5,7 @@ Finds every dictionary word spellable from a pool of letters. Each letter is a
 tile and may be used only as many times as it appears; '?' is a wildcard that
 stands for any one letter, for a tile that has not been revealed yet.
 
-    python main.py "he?lpf"        ->  hell, help, hello, ...
+    python main.py solve "he?lpf"  ->  hell, help, hello, ...
 
 Dictionary: complete ENABLE1 list (see DICTIONARY.md).
 """
@@ -18,6 +18,8 @@ import shutil
 import sys
 import webbrowser
 from pathlib import Path
+
+from cli.messages import ArgumentParser, fail, info, success, warning
 
 HERE = Path(__file__).resolve().parent
 WORDLIST = HERE / "wordlist.txt"
@@ -176,7 +178,7 @@ def render(found: dict, args, rack_desc: str, dict_size: int) -> None:
     print("Dictionary: {:,} words\n".format(dict_size))
 
     if not found:
-        print("No words found.\n")
+        warning("No words found. Try different letters or options.")
         return
 
     for length in sorted(found, reverse=True):
@@ -189,7 +191,7 @@ def render(found: dict, args, rack_desc: str, dict_size: int) -> None:
             print(line)
         print()
 
-    print("{} word{} total\n".format(total, "" if total == 1 else "s"))
+    success("{} word{} found.\n".format(total, "" if total == 1 else "s"))
 
 
 # --------------------------------------------------------------------------- #
@@ -217,31 +219,38 @@ def show_help(command, parser) -> None:
 
 
 def parse_args(argv=None) -> argparse.Namespace:
-    """Pull an optional leading command off the front, then parse the rest.
-
-    A subparser per command would force every solve to say `solve` first, so the
-    command is taken by hand and `solve` stays the default. Only the very first
-    word is considered, which keeps a rack that happens to spell one reachable
-    as `main.py solve open`.
-    """
+    """Require a leading command; a bare invocation shows top-level help."""
     argv = list(sys.argv[1:] if argv is None else argv)
-    explicit = bool(argv) and argv[0].lower() in COMMANDS
-    command = argv.pop(0).lower() if explicit else "solve"
+    if not argv or argv[0] in HELP_FLAGS:
+        show_help(None, None)
+        raise SystemExit(0)
+    if argv[0].lower() not in COMMANDS:
+        ArgumentParser(prog="main.py", add_help=False).error(
+            "unknown command {!r}; use 'solve <anagram>' to solve, "
+            "or 'python main.py -h' for help".format(argv[0])
+        )
+    command = argv.pop(0).lower()
 
     if command == "update":
         from build_wordlist import create_parser
 
         ap = create_parser(prog="main.py update", add_help=False)
+        ap.add_argument("-d", "--dictionary", action="store_true",
+                        help="update only the word list (unless --build is also set)")
+        ap.add_argument("-b", "--build", action="store_true",
+                        help="rebuild only the standalone HTML (unless --dictionary is also set)")
         if any(arg in HELP_FLAGS for arg in argv):
             show_help(command, ap)
             raise SystemExit(0)
         args = ap.parse_args(argv)
+        if args.src is not None and args.build and not args.dictionary:
+            ap.error("--src requires a dictionary update; add --dictionary or omit --build")
         args.command = command
         return args
 
     # add_help=False: argparse's own formatter is replaced by cli/pages.py, but
     # the parser still owns the option list those pages print.
-    ap = argparse.ArgumentParser(prog="main.py", add_help=False)
+    ap = ArgumentParser(prog="main.py", add_help=False)
     ap.add_argument("letters", nargs="*",
                     help="the board letters; '?' = an unrevealed letter")
     ap.add_argument("-l", "--length", help="only these word lengths, e.g. 4,5,7")
@@ -261,12 +270,8 @@ def parse_args(argv=None) -> argparse.Namespace:
                     help="one word per line, no headers (for piping)")
     ap.add_argument("-c", "--count", action="store_true", help="show counts only")
 
-    # A bare run, or -h anywhere, is a request for a page rather than a search.
-    if not argv and not explicit:
-        show_help(None, ap)
-        raise SystemExit(0)
     if any(arg in HELP_FLAGS for arg in argv):
-        show_help(command if explicit else None, ap)
+        show_help(command, ap)
         raise SystemExit(0)
 
     args = ap.parse_args(argv)
@@ -275,7 +280,7 @@ def parse_args(argv=None) -> argparse.Namespace:
     # run and open are errands, not searches: nothing to solve, nothing to tune.
     if command == "solve":
         if not args.letters:
-            ap.error("no letters given; try: python main.py -h")
+            ap.error("no letters given; try: python main.py solve -h")
     elif args.letters:
         ap.error("{} takes no letters (got {!r})".format(command, " ".join(args.letters)))
     return args
@@ -316,13 +321,20 @@ def main(argv=None) -> None:
     if args.command == "update":
         from build_wordlist import update_dictionary
 
-        update_dictionary(args.src)
+        both = not args.dictionary and not args.build
+        if args.dictionary or both:
+            update_dictionary(args.src)
+        if args.build or both:
+            from build_standalone import main as build
+
+            build([])
         return
 
     if args.command == "open":
-        print("Opening {}".format(SITE_URL))
+        info("Opening the web page in your browser...")
         if not webbrowser.open(SITE_URL):
-            sys.exit("Could not open a browser. The page is at {}".format(SITE_URL))
+            fail("Could not open your browser. Open this address instead: {}".format(SITE_URL))
+        success("The web page has been opened in your browser.")
         return
 
     if args.command == "run":
@@ -343,16 +355,20 @@ def main(argv=None) -> None:
         by_length = load_index(WORDLIST)
         lengths, notes = choose_lengths(args, tiles, max(by_length) if by_length else 0)
     except (ValueError, FileNotFoundError) as exc:
-        sys.exit(str(exc))
+        fail(str(exc))
 
     for note in notes:
-        print("note: " + note, file=sys.stderr)
+        warning(note)
 
     dict_size = sum(len(v) for v in by_length.values())
     found = solve(by_length, rack, wildcards, lengths)
 
     if args.pattern:
-        regex = re.compile("^" + re.sub(r"[?.]", ".", args.pattern.lower().strip()) + "$")
+        try:
+            regex = re.compile("^" + re.sub(r"[?.]", ".", args.pattern.lower().strip()) + "$")
+        except re.error as exc:
+            fail("The word pattern is invalid. Use letters and '.' or '?' for unknown positions.\n"
+                 "Details: {}".format(exc))
         matched = {}
         for length, words in found.items():
             kept = [w for w in words if regex.match(w)]
@@ -363,7 +379,8 @@ def main(argv=None) -> None:
     excluded = parse_exclusions(args.exclude)
     if excluded:
         found = filter_excluded(found, excluded)
-        print("note: excluding words with " + ", ".join(sorted(excluded)), file=sys.stderr)
+        info("Excluding words containing: " + ", ".join(sorted(excluded)) + ".",
+             stream=sys.stderr)
 
     letters_only = tiles - wildcards
     rack_desc = " ".join(raw.lower().replace(" ", ""))

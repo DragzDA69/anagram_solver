@@ -14,7 +14,6 @@ two used to be separate documents, and they drifted.
     python build_standalone.py
 """
 
-import argparse
 import base64
 import re
 import sys
@@ -24,6 +23,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import ui  # noqa: E402
+from cli.messages import ArgumentParser, fail, success  # noqa: E402
 
 TEMPLATE = HERE / "web" / "index.html"
 STYLES = HERE / "web" / "style.css"
@@ -76,22 +76,22 @@ def front_code(words: list[str]) -> str:
     return "\n".join(lines)
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Build the standalone single-file solver.")
+def _build(argv=None) -> None:
+    ap = ArgumentParser(description="Build the standalone single-file solver.")
     ap.add_argument("--out", type=Path, default=OUT)
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     page = TEMPLATE.read_text(encoding="utf-8")
     for tag in (STYLESHEET_TAG, SCRIPT_TAG, ICON_URL, DOCTYPE):
         if tag not in page:
-            raise SystemExit("{} no longer contains {}".format(TEMPLATE, tag))
+            fail("Could not rebuild the page: {} is missing {}.".format(TEMPLATE.name, tag))
 
     try:
         styles = STYLES.read_text(encoding="utf-8")
         app = APP.read_text(encoding="utf-8")
         solver = SOLVER.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        raise SystemExit(str(exc)) from None
+        fail("Could not read a file needed to rebuild the page.\nDetails: {}".format(exc))
 
     # Copy and timings go in before the payloads do, so neither the word list
     # nor the inlined files are scanned for the other's placeholders.
@@ -101,27 +101,28 @@ def main() -> None:
         app = ui.render(app, APP.name)
         solver = ui.render(solver, SOLVER.name)
     except KeyError as exc:
-        raise SystemExit(str(exc)) from None
+        fail("Could not rebuild the page because a UI label is missing.\nDetails: {}".format(exc))
 
     for name, text in (("stylesheet", styles), ("app.js", app), ("solver.js", solver)):
         if "</" in text and name == "stylesheet":
-            raise SystemExit("{} contains '</', which would close the style block".format(name))
+            fail("Could not rebuild the page: {} contains invalid HTML closing text.".format(name))
         if "</script" in text.lower():
-            raise SystemExit("{} contains '</script', which would close its block".format(name))
+            fail("Could not rebuild the page: {} contains invalid script closing text.".format(name))
 
     try:
         icon = "data:image/png;base64," + base64.b64encode(
             ICON.read_bytes()).decode("ascii")
     except FileNotFoundError:
-        raise SystemExit("Icon not found: {}".format(ICON)) from None
+        fail("Could not rebuild the page: the app icon is missing.")
 
     words = WORDLIST.read_text(encoding="utf-8").split()
     if not words:
-        raise SystemExit("{} is empty".format(WORDLIST))
+        fail("The dictionary is empty. Run 'python main.py update -d' and try again.")
 
     bad = [w for w in words if not (w.isalpha() and w.isascii() and w.islower())]
     if bad:
-        raise SystemExit("word list must be lowercase a-z only; found {!r}".format(bad[:3]))
+        fail("The dictionary contains invalid entries: {!r}. "
+             "Run 'python main.py update -d' and try again.".format(bad[:3]))
 
     data = front_code(sorted(words))
     # The data sits in a <script type="text/plain"> block, so only a literal
@@ -141,9 +142,15 @@ def main() -> None:
 
     args.out.write_text(page, encoding="utf-8", newline="\n")
 
-    kb = args.out.stat().st_size / 1024
-    print("wrote {}  ({:,} words, {:,} B icon, {:.0f} KB)".format(
-        args.out, len(words), ICON.stat().st_size, kb))
+    success("{} has been recompiled with the latest changes.".format(args.out.name))
+
+
+def main(argv=None) -> None:
+    try:
+        _build(argv)
+    except (OSError, UnicodeError) as exc:
+        fail("Could not rebuild the page. Check that the required files are available "
+             "and the output file can be saved.\nDetails: {}".format(exc))
 
 
 if __name__ == "__main__":

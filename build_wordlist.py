@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import sys
 import tempfile
 import urllib.error
 import urllib.request
@@ -23,6 +22,7 @@ from http.client import HTTPException
 from pathlib import Path
 
 from cli.spinner import spinner
+from cli.messages import ArgumentParser, fail, success
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "wordlist.txt"
@@ -35,13 +35,14 @@ def fetch() -> str:
             return resp.read().decode("utf-8")
     except (urllib.error.URLError, OSError, HTTPException, UnicodeError) as exc:
         raise RuntimeError(
-            f"Could not download ENABLE1 from {SOURCE}\n    {exc}\n"
-            "Pass --src with a local copy to build without the network."
+            f"Could not download the dictionary. Check your internet connection and try again.\n"
+            f"Details: {exc}\n"
+            "Use --src with a local dictionary file to update without internet."
         ) from exc
 
 
 def create_parser(prog=None, add_help=True) -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(
+    ap = ArgumentParser(
         prog=prog, add_help=add_help,
         description="Update wordlist.txt with the complete ENABLE1 dictionary.")
     ap.add_argument("--src", type=Path, help="use a local ENABLE1 file instead of downloading")
@@ -51,7 +52,7 @@ def create_parser(prog=None, add_help=True) -> argparse.ArgumentParser:
 def update_dictionary(src: Path | None = None) -> None:
     temporary = None
     try:
-        with spinner("Updating ENABLE1 dictionary"):
+        with spinner("Updating the dictionary"):
             raw = src.read_text(encoding="utf-8") if src is not None else fetch()
             words = sorted({
                 w for w in (line.strip().lower() for line in raw.splitlines())
@@ -69,12 +70,12 @@ def update_dictionary(src: Path | None = None) -> None:
                 f.write("\r\n".join(words) + "\r\n")
             os.replace(temporary, OUT)
     except (OSError, UnicodeError, RuntimeError, ValueError) as exc:
-        sys.exit(f"Dictionary update failed; existing word list unchanged.\n{exc}")
+        fail(f"Dictionary update failed; existing word list unchanged.\n{exc}")
     finally:
         if temporary is not None and temporary.exists():
             temporary.unlink()
 
-    print(f"Updated {OUT} ({len(words):,} words, all word lengths).")
+    success(f"Dictionary updated with {len(words):,} words. All word lengths are included.")
 
 
 def main(argv=None) -> None:

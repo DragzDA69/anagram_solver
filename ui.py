@@ -40,6 +40,7 @@ VALUES: dict[str, object] = {
     "app_name": "{} {}".format(BRAND_LEAD, BRAND_TAIL),
     "brand_lead": BRAND_LEAD,
     "brand_tail": BRAND_TAIL,
+    "developer_credit": "Developed by Dragz",
     # Two sentences, kept apart: the header puts each in its own inline-block,
     # so a line break lands between them rather than mid-sentence.
     "dict_info_source": "Finds all possible words that can be made from an anagram.",
@@ -89,6 +90,11 @@ VALUES: dict[str, object] = {
     "view_flat": "Flat",
     "view_counts": "Counts",
     "btn_solve": "Solve",
+    "btn_clear_form": "Clear",
+    "clear_dialog_title": "Clear The Form?",
+    "clear_dialog_message": "Are you sure you want to clear the form?",
+    "btn_cancel": "Cancel",
+    "btn_confirm_clear": "Clear Form",
 
     # -- messages the scripts show ----------------------------------------
     "msg_prompt": "Enter the anagram letters to begin.",

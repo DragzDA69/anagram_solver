@@ -7,7 +7,7 @@ that main.py already builds, so a flag added there shows up here on its own.
 
 from __future__ import annotations
 
-from cli.ansi import BRIGHT, PRIMARY, SECONDARY, TERTIARY, colored
+from cli.ansi import BRIGHT, PRIMARY, SECONDARY, colored
 from cli.help import (
     format_line_pacing,
     options_width,
@@ -27,14 +27,14 @@ SUMMARIES = {
     "solve": "Find every word spellable from the board letters.",
     "run": "Start the local web server and open the page in a browser.",
     "open": "Open the hosted page in a browser.",
-    "update": "Update the local dictionary with the complete ENABLE1 word list.",
+    "update": "Update the dictionary and rebuild the standalone HTML page.",
 }
 
 USAGE = {
     "solve": "<letters> [--args]",
     "run": "",
     "open": "",
-    "update": "[--src <file>]",
+    "update": "[-d] [-b] [--src <file>]",
 }
 
 
@@ -42,9 +42,8 @@ def _command_list():
     rows = []
     for name, summary in SUMMARIES.items():
         label = colored(name, PRIMARY)
-        note = " (default)" if name == "solve" else ""
         rows.append(format_line_pacing(
-            label, summary + colored(note, TERTIARY, attrs=["italic"]),
+            label, summary,
             indent=get_tabs(2)))
     return rows
 
@@ -60,12 +59,12 @@ def print_top_level(site_url):
 
     print("Usage:")
     print(get_tabs(2) + "> python main.py"
-          + colored(" <command?>", PRIMARY)
-          + colored(" <letters?>", SECONDARY)
+          + colored(" <command>", PRIMARY)
+          + colored(" [letters]", SECONDARY)
           + colored(" [--args] [-h]", BRIGHT))
     print("")
     print(get_tabs(2) + colored(
-        "solve is the default, so the letters alone are a whole command line.",
+        "Use solve followed by the anagram. Without a command, this help is shown.",
         SECONDARY, attrs=["italic"]))
     print("")
 
@@ -73,11 +72,13 @@ def print_top_level(site_url):
     print("")
 
     print_lines("Examples:", [
-        colored('> python main.py "he?lpf"', BRIGHT),
+        colored('> python main.py solve "he?lpf"', BRIGHT),
         colored('> python main.py solve "caution" -l 4,5,7', BRIGHT),
         colored("> python main.py run", BRIGHT),
         colored("> python main.py open", BRIGHT),
         colored("> python main.py update", BRIGHT),
+        colored("> python main.py update -d", BRIGHT),
+        colored("> python main.py update -b", BRIGHT),
     ])
 
     print_lines("Help Examples:", [
@@ -103,7 +104,7 @@ def print_solve(parser):
           + colored(" [--args]", BRIGHT))
     print("")
     print(get_tabs(2) + colored(
-        "The word solve is optional -- the letters alone do the same thing.",
+        "The solve command is required before the anagram letters.",
         SECONDARY, attrs=["italic"]))
     print("")
 
@@ -115,10 +116,10 @@ def print_solve(parser):
 
     # One column for the command, one for what it shows -- padded, not tabbed.
     examples = [
-        ('> python main.py "he?lpf"', "every word from  h e ? l l"),
-        ('> python main.py "caution" -l 4,5,7', "only the word lengths you need"),
-        ('> python main.py "caution" -e', "the big word (uses every letter)"),
-        ('> python main.py "ca?tion" -p "..t..n"', "a pattern showing  _ _ t _ _ n"),
+        ('> python main.py solve "he?lpf"', "every word from  h e ? l p f"),
+        ('> python main.py solve "caution" -l 4,5,7', "only the word lengths you need"),
+        ('> python main.py solve "caution" -e', "the big word (uses every letter)"),
+        ('> python main.py solve "ca?tion" -p "..t..n"', "a pattern showing  _ _ t _ _ n"),
         ("> python main.py solve open", "letters that spell a command name"),
     ]
     column = max(len(command) for command, _ in examples) + 2
@@ -136,6 +137,7 @@ def print_solve(parser):
 def print_run(parser):
     print_command_header("run", summary=[
         SUMMARIES["run"],
+        "Rebuilds the standalone page before starting the server.",
         "Solves as you type, using this same solver behind the page.",
     ], option_args=["-h"])
 
@@ -147,8 +149,10 @@ def print_run(parser):
     print("")
 
     print_lines("Notes:", [
+        colored("Rebuilds index.html on startup and each server restart.", SECONDARY),
         colored("Serves http://127.0.0.1:8000 and opens it in your browser.", SECONDARY),
         colored("Binds to localhost only -- nothing is exposed off this machine.", SECONDARY),
+        colored("If the port is busy on Windows: Y replaces the process; N/Esc cancels.", SECONDARY),
         "",
         colored("While it runs:", SECONDARY),
         colored("Ctrl+R", BRIGHT) + colored("   restart -- reloads ui.py, main.py and the word list",
@@ -194,6 +198,8 @@ def print_update(parser):
 
     print_lines("Usage:", [
         colored("> python main.py update", BRIGHT),
+        colored("> python main.py update -d", BRIGHT),
+        colored("> python main.py update -b", BRIGHT),
         colored("> python main.py update --src enable1.txt", BRIGHT),
     ])
     width = options_width(rows)
@@ -202,8 +208,9 @@ def print_update(parser):
     print_global_options(width=width)
     print("")
     print_lines("Notes:", [
-        colored("Needs internet unless --src supplies a local ENABLE1 file.", SECONDARY),
+        colored("No selection flags: update the dictionary, then rebuild the HTML.", SECONDARY),
+        colored("Dictionary updates need internet unless --src supplies a local file.", SECONDARY),
         colored("A failed update leaves the existing word list unchanged.", SECONDARY),
         colored("Restart the local server to reload the updated dictionary.", SECONDARY),
-        colored("To refresh the standalone page: python build_standalone.py", SECONDARY),
+        colored("Build-only updates use the existing dictionary and work offline.", SECONDARY),
     ])

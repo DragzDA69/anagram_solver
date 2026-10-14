@@ -80,10 +80,10 @@ def supports_color(stream=None) -> bool:
     return _enable_windows_vt()
 
 
-def colored(text, color=None, attrs=None, on_color=None) -> str:
+def colored(text, color=None, attrs=None, on_color=None, stream=None) -> str:
     """Wrap `text` in escape codes. `color` is a NAMED key or an (r, g, b)."""
     text = str(text)
-    if not text or not supports_color():
+    if not text or not supports_color(stream):
         return text
 
     codes = []

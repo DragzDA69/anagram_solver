@@ -56,7 +56,9 @@ is plain ENABLE1.
 
 Run `python main.py update` to download ENABLE1 from
 [Peter Norvig's copy](https://norvig.com/ngrams/enable1.txt) and save all words
-to `wordlist.txt`. `python build_wordlist.py` runs the same updater directly.
+to `wordlist.txt`, then rebuild the standalone HTML. Use `python main.py update -d`
+for just the dictionary, or `python main.py update -b` for just the HTML.
+`python build_wordlist.py` runs the dictionary updater directly.
 
 The updater does not trim by length: the solver's min/max options control the
 results (the default minimum remains 4). Use `python main.py update --src enable1.txt`

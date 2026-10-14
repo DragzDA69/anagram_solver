@@ -19,12 +19,10 @@
   <br>
 
   <p style="margin-top:10px;">
-    <img src="docs/web-page.png"
-         style="max-width:520px;height:auto;vertical-align:top"
-         alt="The web page: board letters, options, and grouped results" width="520" height="480">
-    <img src="docs/mobile-layout.png"
-         style="max-width:100%;height:auto;vertical-align:top"
-         alt="Mobile layout" width="237" height="480">
+    <img src="docs/web-page.png" alt="The web page: board letters, options, and grouped results"
+         style="max-width:100%;max-height:480px;height:auto;vertical-align:top">
+    <img src="docs/mobile-layout.png" alt="Mobile layout"
+         style="max-width:100%;max-height:480px;height:auto;vertical-align:top">
   </p>
 </div>
 
@@ -43,7 +41,7 @@ Letter combinations are checked against the [Enhanced North American Benchmark L
 
 ```bash
 python main.py run          # web page at http://127.0.0.1:8000
-python main.py "he?lpf"     # same thing, in the terminal
+python main.py solve "he?lpf" # solve in the terminal
 ```
 
 `?` is a wildcard — a letter you have not identified yet. 
@@ -54,10 +52,14 @@ To update the bundled dictionary, run:
 python main.py update
 ```
 
-This downloads the complete ENABLE1 list; internet is needed only for the update,
+This downloads the complete ENABLE1 list and rebuilds the standalone HTML page.
+Use `-d` / `--dictionary` for just the word list, or `-b` / `--build` for just
+the HTML build (no internet needed). Internet is needed only for dictionary downloads,
 not for solving. All word lengths are saved, and min/max options control the results.
-Restart a running local server to reload it; run `python build_standalone.py` to
-refresh the standalone page. For a local dictionary file, use
+The dictionary has no fixed word-length ceiling. The web page's Max field
+defaults to 15, and its Min and Max fields allow values up to 50. Set Min,
+Max, or Word lengths to restrict your search.
+Restart a running local server to reload the dictionary. For a local dictionary file, use
 `python main.py update --src enable1.txt`.
 
 ---
@@ -77,6 +79,8 @@ Binds to localhost only, standard library only, nothing downloaded at runtime.
 Clicking a word copies it to the clipboard, and each length group collapses —
 **Collapse All** beside the hint folds or unfolds every group at once. The ×
 inside the input clears it.
+
+**Clear** beside Solve resets the entire form and results after confirmation.
 
 #### While it runs
 
@@ -115,8 +119,17 @@ commit whenever a source changes, and `pre-push` refuses a push when what is in
 git config core.hooksPath .githooks
 ```
 
-`server.py` also warns at startup, and after every restart, when `index.html` is
-older than anything it is built from.
+`python main.py run` (or `python server.py`) rebuilds `index.html` before starting
+the local server and opening the browser. Ctrl+R/Ctrl+O restarts rebuild it too;
+if the build fails, the server does not start.
+
+The local server checks the page before starting and reloads UI labels when
+they change on disk; refresh the browser to see updated wording.
+Only one server can use a port at a time. If port 8000 is already occupied,
+an interactive Windows terminal shows the process using it and asks whether
+to stop it and start fresh. Press **Y** to replace it, **N** or **Esc** to cancel.
+Stopping the process also ends any other work it is doing. Without an interactive
+terminal, stop the earlier server yourself or run `python server.py --port 8001`.
 
 For a phone, GitHub Pages is easiest: **Settings → Pages**, source `main`, root
 folder. It is then live at `https://dragzda69.github.io/anagram_solver/`, which
@@ -135,11 +148,11 @@ gives it an icon that opens fullscreen.
 
 | Command | |
 | :-- | :-- |
-| `python main.py <anagram>` | Solve — the default, so `solve` is optional |
-| `python main.py solve <anagram>` | The same thing, said out loud |
+| `python main.py` | Show top-level help |
+| `python main.py solve <anagram>` | Solve the anagram (the `solve` command is required) |
 | `python main.py run` | Start the local server and open the page |
 | `python main.py open` | Open the hosted page in a browser |
-| `python main.py update` | Download and save the complete ENABLE1 dictionary |
+| `python main.py update` | Update the dictionary and rebuild the standalone HTML |
 
 A command has to come first, and only the first word is read as one — so a rack
 that happens to spell one is still reachable as `python main.py solve open`.
@@ -163,6 +176,10 @@ that happens to spell one is still reachable as `python main.py solve open`.
 Case does not matter anywhere: `-x QXZ` and `-x qxz` are the same, as are the
 board letters. On the web page, `--pattern` sits in its own collapsed section
 under Options, since it is the one you reach for least.
+
+Command messages use green for success, yellow/orange for warnings, and red for
+errors; informational text uses the terminal's normal color. Redirected output
+stays plain, and `--flat` keeps standard output limited to words.
 
 `python main.py -h` shows a banner, the commands and these options; each command
 has a page of its own too (`solve -h`, `run -h`, `open -h`, `update -h`). The web page exposes

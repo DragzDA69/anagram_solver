@@ -11,8 +11,11 @@
 <body>
 
 <header class="bar">
-  <h1><img class="logo" src="/icon.png" alt="">{{brand_lead}} {{brand_tail}}</h1>
-  <p class="dict" id="dictInfo"><span>{{dict_info_source}}</span> <span>{{dict_info_wildcards}}</span></p>
+  <div class="brand">
+    <h1><img class="logo" src="/icon.png" alt="">{{brand_lead}} {{brand_tail}}</h1>
+    <span class="developer-credit">{{developer_credit}}</span>
+  </div>
+  <p class="dict app-description" id="dictInfo"><span>{{dict_info_source}}</span> <span>{{dict_info_wildcards}}</span></p>
 </header>
 
 <main>
@@ -57,13 +60,13 @@
 
             <label class="ctl" id="minWrap">
               <span class="label">{{label_min}}</span>
-              <input id="min" type="number" min="1" max="15" value="4">
+              <input id="min" type="number" min="1" max="50" value="4">
               <span class="hint">{{hint_min}}</span>
             </label>
 
             <label class="ctl" id="maxWrap">
               <span class="label">{{label_max}}</span>
-              <input id="max" type="number" min="1" max="15" value="15" placeholder="{{ph_max}}">
+              <input id="max" type="number" min="1" max="50" value="15" placeholder="{{ph_max}}">
               <span class="hint">{{hint_max}}</span>
             </label>
 
@@ -104,7 +107,10 @@
           </div>
 
           <div class="spacer"></div>
-          <button type="submit" id="go">{{btn_solve}}</button>
+          <div class="form-actions">
+            <button type="button" class="secondary-btn" id="clearForm" disabled>{{btn_clear_form}}</button>
+            <button type="submit" id="go">{{btn_solve}}</button>
+          </div>
         </div>
 
       </div>
@@ -118,6 +124,18 @@
   </div>
   <section id="results" class="results"></section>
 </main>
+
+<dialog id="clearDialog" class="confirm-dialog" aria-labelledby="clearDialogTitle"
+        aria-describedby="clearDialogMessage">
+  <form method="dialog">
+    <h2 id="clearDialogTitle">{{clear_dialog_title}}</h2>
+    <p id="clearDialogMessage">{{clear_dialog_message}}</p>
+    <div class="dialog-actions">
+      <button type="submit" class="secondary-btn" value="cancel" autofocus>{{btn_cancel}}</button>
+      <button type="submit" value="clear">{{btn_confirm_clear}}</button>
+    </div>
+  </form>
+</dialog>
 
 <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 

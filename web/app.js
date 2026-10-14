@@ -13,6 +13,49 @@ const collapsed = new Set();
 let lastWords = [];
 let timer = null;
 let seq = 0;
+let initialStatus = "";
+let defaultPanels = [];
+
+$("clearForm").addEventListener("click", () => {
+  if ($("clearForm").disabled) return;
+  $("clearDialog").returnValue = "";
+  $("clearDialog").showModal();
+});
+
+$("clearDialog").addEventListener("close", () => {
+  if ($("clearDialog").returnValue === "clear") resetForm();
+});
+
+$("clearDialog").addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    $("clearDialog").close("cancel");
+  }
+});
+
+function resetForm() {
+  clearTimeout(timer);
+  timer = null;
+  ++seq; // Ignore solves that were started before the reset.
+  form.reset();
+  view = "grouped";
+  document.querySelectorAll(".seg button").forEach((button) => {
+    button.classList.toggle("on", button.dataset.view === view);
+  });
+  for (const { panel, open } of defaultPanels) panel.open = open;
+  results.innerHTML = '<p class="empty">{{msg_prompt}}</p>';
+  collapsed.clear();
+  lastWords = [];
+  $("copyRow").hidden = true;
+  $("toggleAll").hidden = true;
+  $("toggleAll").textContent = "{{btn_collapse_all}}";
+  for (const toast of $("toasts").children) clearTimeout(toast.dismiss);
+  $("toasts").replaceChildren();
+  reflectDisabled();
+  syncHead();
+  flash(initialStatus);
+  letters.focus();
+}
 
 // --- input hygiene: letters and '?' only, never digits ---------------------
 
@@ -51,11 +94,24 @@ $("length").addEventListener("input", (e) => {
 
 // --- controls -------------------------------------------------------------
 
+function syncClearForm() {
+  const changed = [...form.querySelectorAll("input")].some((input) =>
+    input.type === "checkbox"
+      ? input.checked !== input.defaultChecked
+      : input.value !== input.defaultValue
+  );
+  $("clearForm").disabled = !changed && view === "grouped";
+}
+
+form.addEventListener("input", syncClearForm);
+form.addEventListener("change", syncClearForm);
+
 document.querySelectorAll(".seg button").forEach((b) => {
   b.addEventListener("click", () => {
     document.querySelectorAll(".seg button").forEach((x) => x.classList.remove("on"));
     b.classList.add("on");
     view = b.dataset.view;
+    syncClearForm();
     solve();
   });
 });
@@ -83,6 +139,7 @@ function syncHead() {
   const v = letters.value;
   $("clear").hidden = !v;
   $("headRack").textContent = v ? [...v].join(" ") : "no letters yet";
+  syncClearForm();
 }
 
 function schedule() {
@@ -98,6 +155,7 @@ function flash(msg, bad) {
 // --- solving --------------------------------------------------------------
 
 async function solve() {
+  const mine = ++seq;
   const raw = letters.value.trim();
   results.innerHTML = "";
   $("copyRow").hidden = true;
@@ -120,7 +178,6 @@ async function solve() {
     exact: $("exact").checked,
   };
 
-  const mine = ++seq;
   flash("Solving…");
 
   // The standalone build inlines solver.js, which defines LOCAL_SOLVE; the
@@ -128,9 +185,11 @@ async function solve() {
   let data;
   if (window.LOCAL_SOLVE) {
     await window.LOCAL_READY;
+    if (mine !== seq) return;
     try {
       data = window.LOCAL_SOLVE(body);
     } catch (exc) {
+      if (mine !== seq) return;
       flash(exc.message, true);
       return;
     }
@@ -143,6 +202,7 @@ async function solve() {
       });
       data = await res.json();
     } catch {
+      if (mine !== seq) return;
       flash("Lost contact with the local server. Is server.py still running?", true);
       return;
     }
@@ -200,6 +260,7 @@ function render(data) {
       sec.className = "group";
       sec.open = !collapsed.has(g.length);
       sec.addEventListener("toggle", () => {
+        if (!sec.isConnected) return;
         if (sec.open) collapsed.delete(g.length);
         else collapsed.add(g.length);
         syncToggleAll();
@@ -320,9 +381,37 @@ function code(word) {
 
 // --- startup --------------------------------------------------------------
 
+function syncBrandLayout() {
+  const bar = document.querySelector(".bar");
+  const style = getComputedStyle(bar);
+  const available = bar.clientWidth - parseFloat(style.paddingLeft)
+    - parseFloat(style.paddingRight);
+  // Measure the unwrapped copy, not its current (possibly wrapped) width.
+  const description = $("dictInfo").cloneNode(true);
+  description.removeAttribute("id");
+  description.style.cssText =
+    "position:fixed;visibility:hidden;width:max-content;white-space:nowrap";
+  document.body.append(description);
+  const required = bar.querySelector("h1").getBoundingClientRect().width
+    + parseFloat(style.columnGap) + description.getBoundingClientRect().width;
+  description.remove();
+  bar.classList.toggle("compact", required > available);
+}
+
 (function init() {
+  syncBrandLayout();
+  let headerWidth = null;
+  new ResizeObserver(([entry]) => {
+    if (entry.contentRect.width === headerWidth) return;
+    headerWidth = entry.contentRect.width;
+    syncBrandLayout();
+  }).observe(document.querySelector(".bar"));
+  document.fonts.ready.then(syncBrandLayout);
   /* Options start open on desktop, collapsed under the "md" width (768px). */
   if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
+  defaultPanels = [...form.querySelectorAll("details")].map((panel) => ({
+    panel, open: panel.open,
+  }));
   syncHead();
   reflectDisabled();
   results.innerHTML = '<p class="empty">{{msg_prompt}}</p>';
@@ -330,9 +419,11 @@ function code(word) {
   if (window.LOCAL_SOLVE) {
     /* Offline build: say so while the embedded dictionary is decoding, then
        report it where the server would have reported the word count. */
-    flash("{{msg_loading_dict}}");
+    initialStatus = "{{msg_loading_dict}}";
+    flash(initialStatus);
     window.LOCAL_READY.then(({ words, ms }) => {
-      flash(words.toLocaleString() + " words · ready in " + ms + " ms");
+      initialStatus = words.toLocaleString() + " words · ready in " + ms + " ms";
+      flash(initialStatus);
       if (letters.value) solve();
     });
   }

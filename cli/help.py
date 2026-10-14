@@ -193,7 +193,7 @@ def get_help_header():
             "identified yet.",
             " ",
             "The same solver runs on the command line and behind the web page.",
-            get_tabs(1) + "> python main.py \"he?lpf\"",
+            get_tabs(1) + "> python main.py solve \"he?lpf\"",
         ], text_color=SECONDARY, attrs=["italic"]),
         blank,
         title_border_line(box["v"], box["v"], " ", [
