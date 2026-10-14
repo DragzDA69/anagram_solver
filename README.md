@@ -187,6 +187,10 @@ On the web page, Max length updates whenever the anagram changes, counting
 `?` wildcards as tiles and keeping the existing upper limit of 50. You can
 adjust Max manually until the next anagram edit; clearing the anagram restores
 the default of 15.
+When both Min and Max are filled in, Min cannot exceed Max and Max cannot fall
+below Min; equal values are allowed. Leaving either field blank removes this
+cross-field restriction. If an anagram edit lowers Max below Min, Min also drops
+to match the new Max.
 
 Command messages use green for success, yellow/orange for warnings, and red for
 errors; informational text uses the terminal's normal color. Redirected output

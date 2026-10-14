@@ -54,6 +54,7 @@ function resetForm() {
   timer = null;
   ++seq; // Ignore solves that were started before the reset.
   form.reset();
+  syncLengthBounds();
   view = "grouped";
   document.querySelectorAll(".seg button").forEach((button) => {
     button.classList.toggle("on", button.dataset.view === view);
@@ -114,6 +115,20 @@ function syncMaxLength() {
   max.value = letters.value
     ? Math.min(letters.value.length, Number(max.max))
     : max.defaultValue;
+  syncLengthBounds("min");
+}
+
+function syncLengthBounds(changed) {
+  const min = $("min");
+  const max = $("max");
+  const bothProvided = Number.isFinite(min.valueAsNumber)
+    && Number.isFinite(max.valueAsNumber);
+  if (bothProvided && min.valueAsNumber > max.valueAsNumber) {
+    if (changed === "min") min.value = max.value;
+    else max.value = min.value;
+  }
+  min.max = bothProvided ? Math.min(50, max.valueAsNumber) : 50;
+  max.min = bothProvided ? Math.max(1, min.valueAsNumber) : 1;
 }
 
 for (const { field: id, clear: clearId } of clearFields) {
@@ -123,6 +138,7 @@ for (const { field: id, clear: clearId } of clearFields) {
   if (!field || !clearBtn) continue;
 
   field.addEventListener("input", () => {
+    if (id === "min" || id === "max") syncLengthBounds(id);
     if (id === "pattern") {
       field.value = field.value.toLowerCase().replace(/[^a-z.?]/g, "");
     }
@@ -138,6 +154,7 @@ for (const { field: id, clear: clearId } of clearFields) {
 
   clearBtn.addEventListener("click", () => {
     field.value = "";
+    if (id === "min" || id === "max") syncLengthBounds();
     syncFieldClearButtons();
     field.focus();
     syncClearForm();
@@ -479,6 +496,7 @@ function syncBrandLayout() {
   defaultPanels = [...form.querySelectorAll("details")].map((panel) => ({
     panel, open: panel.open,
   }));
+  syncLengthBounds();
   syncHead();
   reflectDisabled();
   results.innerHTML = '<p class="empty">{{msg_prompt}}</p>';
