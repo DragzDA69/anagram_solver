@@ -16,6 +16,11 @@
     <img src="docs/mobile-layout.png" alt="Mobile layout"
          width="247" height="456">
   </p>
+
+  <h3>
+    Check out the live web app 
+    <a href="https://dragzda69.github.io/anagram_solver/">here</a>
+  </h3>
 </div>
 
 ---
