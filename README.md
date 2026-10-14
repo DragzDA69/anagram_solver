@@ -20,9 +20,9 @@
 
   <p style="margin-top:10px;">
     <img src="docs/web-page.png" alt="The web page: board letters, options, and grouped results"
-         style="max-width:500px;max-height:480px;height:auto;vertical-align:top">
+         width="500" height="457">
     <img src="docs/mobile-layout.png" alt="Mobile layout"
-         style="max-width:247px;max-height:480px;height:auto;vertical-align:top">
+         width="247" height="456">
   </p>
 </div>
 
