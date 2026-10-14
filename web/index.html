@@ -35,6 +35,8 @@
           <div class="field">
             <input id="letters" name="letters" type="text" inputmode="latin"
                    placeholder="{{ph_letters}}" spellcheck="false" autofocus>
+            <button type="button" id="wildcard" class="clearbtn"
+                    title="{{title_wildcard}}" aria-label="{{title_wildcard}}">?</button>
             <button type="button" id="clear" class="clearbtn"
                     title="{{title_clear}}" aria-label="{{title_clear}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
           </div>
@@ -48,31 +50,61 @@
 
             <label class="ctl">
               <span class="label">{{label_exclude}}</span>
-              <input id="exclude" type="text" placeholder="{{ph_exclude}}" spellcheck="false">
+              <div class="field">
+                <input id="exclude" type="text" placeholder="{{ph_exclude}}" spellcheck="false">
+                <button type="button" class="clearbtn small" id="clear-exclude"
+                        title="{{title_clear}}" aria-label="{{title_clear}}" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">{{hint_exclude}}</span>
             </label>
 
             <label class="ctl">
               <span class="label">{{label_lengths}}</span>
-              <input id="length" type="text" placeholder="{{ph_lengths}}" spellcheck="false">
+              <div class="field">
+                <input id="length" type="text" placeholder="{{ph_lengths}}" spellcheck="false">
+                <button type="button" class="clearbtn small" id="clear-length"
+                        title="{{title_clear}}" aria-label="{{title_clear}}" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">{{hint_lengths}}</span>
             </label>
 
             <label class="ctl" id="minWrap">
               <span class="label">{{label_min}}</span>
-              <input id="min" type="number" min="1" max="50" value="4">
+              <div class="field">
+                <input id="min" type="number" min="1" max="50" value="4">
+                <button type="button" class="clearbtn small" id="clear-min"
+                        title="{{title_clear}}" aria-label="{{title_clear}}" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">{{hint_min}}</span>
             </label>
 
             <label class="ctl" id="maxWrap">
               <span class="label">{{label_max}}</span>
-              <input id="max" type="number" min="1" max="50" value="15" placeholder="{{ph_max}}">
+              <div class="field">
+                <input id="max" type="number" min="1" max="50" value="15" placeholder="{{ph_max}}">
+                <button type="button" class="clearbtn small" id="clear-max"
+                        title="{{title_clear}}" aria-label="{{title_clear}}" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">{{hint_max}}</span>
             </label>
 
             <label class="ctl">
               <span class="label">{{label_limit}}</span>
-              <input id="limit" type="number" min="0" placeholder="{{ph_limit}}">
+              <div class="field">
+                <input id="limit" type="number" min="0" placeholder="{{ph_limit}}">
+                <button type="button" class="clearbtn small" id="clear-limit"
+                        title="{{title_clear}}" aria-label="{{title_clear}}" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">{{hint_limit}}</span>
             </label>
 
@@ -82,8 +114,14 @@
             <summary>{{label_pattern}}</summary>
             <div class="controls">
               <div class="ctl">
-                <input id="pattern" type="text" placeholder="{{ph_pattern}}"
-                       aria-label="{{label_pattern}}" spellcheck="false">
+                <div class="field">
+                  <input id="pattern" type="text" placeholder="{{ph_pattern}}"
+                         aria-label="{{label_pattern}}" spellcheck="false">
+                  <button type="button" class="clearbtn small" id="clear-pattern"
+                          title="{{title_clear}}" aria-label="{{title_clear}}" hidden>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                  </button>
+                </div>
                 <span class="hint">{{hint_pattern}}</span>
               </div>
             </div>

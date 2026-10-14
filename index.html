@@ -286,6 +286,15 @@ input[type=text], input[type=number], select {
   padding: 9px 11px;
   font: inherit;
 }
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 /* Nothing styled this before, so the placeholder sat at the browser default --
    a mid grey close to the text you type over it. The opacity is set explicitly
    rather than left alone: Firefox applies its own, so leaving it out makes the
@@ -301,14 +310,14 @@ input:focus, select:focus, button:focus-visible {
 }
 
 .letters-field { display: block; margin-bottom: 20px; }
-.letters-field .field { position: relative; }
+.letters-field .field, .ctl .field { position: relative; }
 #letters {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 26px;
   letter-spacing: 0.3em;
   padding: 12px 14px;
-  /* room for the clear button, so long racks do not run under it */
-  padding-right: 58px;
+  /* Leave room for both input buttons. */
+  padding-right: 98px;
   text-transform: lowercase;
 }
 
@@ -329,9 +338,22 @@ input:focus, select:focus, button:focus-visible {
   color: var(--ink-faint);
   cursor: pointer;
 }
+#wildcard {
+  font: inherit;
+  font-size: 22px;
+  font-weight: 600;
+}
+.letters-field .field:has(#clear:not([hidden])) #wildcard { right: 50px; }
+.clearbtn.small {
+  width: 28px;
+  height: 28px;
+  right: 8px;
+}
 .clearbtn svg { display: block; width: 20px; height: 20px; }
+.clearbtn.small svg { width: 16px; height: 16px; }
 .clearbtn:hover { background: var(--panel-2); color: var(--ink); }
 .clearbtn:active { transform: translateY(-50%) scale(0.92); }
+.clearbtn.small:active { transform: translateY(-50%) scale(0.92); }
 
 .controls {
   margin-top: 14px;
@@ -569,6 +591,8 @@ table.counts tr:last-child td { font-weight: 650; border-bottom: 0; }
           <div class="field">
             <input id="letters" name="letters" type="text" inputmode="latin"
                    placeholder="he?lpf" spellcheck="false" autofocus>
+            <button type="button" id="wildcard" class="clearbtn"
+                    title="Insert a wildcard" aria-label="Insert a wildcard">?</button>
             <button type="button" id="clear" class="clearbtn"
                     title="Clear" aria-label="Clear" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
           </div>
@@ -582,31 +606,61 @@ table.counts tr:last-child td { font-weight: 650; border-bottom: 0; }
 
             <label class="ctl">
               <span class="label">Exclude letters</span>
-              <input id="exclude" type="text" placeholder="xyz" spellcheck="false">
+              <div class="field">
+                <input id="exclude" type="text" placeholder="xyz" spellcheck="false">
+                <button type="button" class="clearbtn small" id="clear-exclude"
+                        title="Clear" aria-label="Clear" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">Drop words using any of these</span>
             </label>
 
             <label class="ctl">
               <span class="label">Word length<small>s</small></span>
-              <input id="length" type="text" placeholder="4,5,7" spellcheck="false">
+              <div class="field">
+                <input id="length" type="text" placeholder="4,5,7" spellcheck="false">
+                <button type="button" class="clearbtn small" id="clear-length"
+                        title="Clear" aria-label="Clear" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">Only these lengths</span>
             </label>
 
             <label class="ctl" id="minWrap">
               <span class="label">Min length</span>
-              <input id="min" type="number" min="1" max="50" value="4">
+              <div class="field">
+                <input id="min" type="number" min="1" max="50" value="4">
+                <button type="button" class="clearbtn small" id="clear-min"
+                        title="Clear" aria-label="Clear" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">Shortest word to look for</span>
             </label>
 
             <label class="ctl" id="maxWrap">
               <span class="label">Max length</span>
-              <input id="max" type="number" min="1" max="50" value="15" placeholder="letters">
+              <div class="field">
+                <input id="max" type="number" min="1" max="50" value="15" placeholder="letters">
+                <button type="button" class="clearbtn small" id="clear-max"
+                        title="Clear" aria-label="Clear" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">Defaults to letter count</span>
             </label>
 
             <label class="ctl">
               <span class="label">Limit per group</span>
-              <input id="limit" type="number" min="0" placeholder="all">
+              <div class="field">
+                <input id="limit" type="number" min="0" placeholder="all">
+                <button type="button" class="clearbtn small" id="clear-limit"
+                        title="Clear" aria-label="Clear" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                </button>
+              </div>
               <span class="hint">0 or blank shows all</span>
             </label>
 
@@ -616,8 +670,14 @@ table.counts tr:last-child td { font-weight: 650; border-bottom: 0; }
             <summary>Pattern</summary>
             <div class="controls">
               <div class="ctl">
-                <input id="pattern" type="text" placeholder="..t..n"
-                       aria-label="Pattern" spellcheck="false">
+                <div class="field">
+                  <input id="pattern" type="text" placeholder="..t..n"
+                         aria-label="Pattern" spellcheck="false">
+                  <button type="button" class="clearbtn small" id="clear-pattern"
+                          title="Clear" aria-label="Clear" hidden>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+                  </button>
+                </div>
                 <span class="hint">Position filter, <kbd>.</kbd> = any letter, <kbd>?</kbd> = wildcard</span>
               </div>
             </div>
@@ -173697,6 +173757,22 @@ const form = $("form");
 const letters = $("letters");
 const results = $("results");
 const status = $("status");
+const clearFields = [
+  { field: "exclude", clear: "clear-exclude" },
+  { field: "length", clear: "clear-length" },
+  { field: "min", clear: "clear-min" },
+  { field: "max", clear: "clear-max" },
+  { field: "limit", clear: "clear-limit" },
+  { field: "pattern", clear: "clear-pattern" },
+];
+
+function syncFieldClearButtons() {
+  for (const { field, clear } of clearFields) {
+    const input = $(field);
+    const btn = $(clear);
+    if (input && btn) btn.hidden = input.value.trim() === "";
+  }
+}
 
 let view = "grouped";
 /* Lengths the reader has collapsed. Results re-render on every keystroke,
@@ -173743,6 +173819,7 @@ function resetForm() {
   $("toggleAll").textContent = "Collapse All";
   for (const toast of $("toasts").children) clearTimeout(toast.dismiss);
   $("toasts").replaceChildren();
+  syncFieldClearButtons();
   reflectDisabled();
   syncHead();
   flash(initialStatus);
@@ -173760,17 +173837,66 @@ letters.addEventListener("input", () => {
     const removed = before.length - clean.length;
     letters.setSelectionRange(start - removed, start - removed);
   }
+  syncMaxLength();
   syncHead();
   schedule();
+});
+
+$("wildcard").addEventListener("pointerdown", (event) => {
+  if (event.button === 0) event.preventDefault();
+});
+
+$("wildcard").addEventListener("click", () => {
+  letters.setRangeText("?", letters.selectionStart, letters.selectionEnd, "end");
+  letters.focus();
+  letters.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
 $("clear").addEventListener("click", () => {
   letters.value = "";
   $("clear").hidden = true;
   letters.focus();
+  syncMaxLength();
   syncHead();
   solve();
 });
+
+function syncMaxLength() {
+  const max = $("max");
+  max.value = letters.value
+    ? Math.min(letters.value.length, Number(max.max))
+    : max.defaultValue;
+}
+
+for (const { field: id, clear: clearId } of clearFields) {
+  const field = $(id);
+  const clearBtn = $(clearId);
+
+  if (!field || !clearBtn) continue;
+
+  field.addEventListener("input", () => {
+    if (id === "pattern") {
+      field.value = field.value.toLowerCase().replace(/[^a-z.?]/g, "");
+    }
+    if (id === "exclude") {
+      field.value = field.value.toLowerCase().replace(/[^a-z]/g, "");
+    }
+    if (id === "length") {
+      field.value = field.value.replace(/[^0-9,\s]/g, "");
+    }
+    syncFieldClearButtons();
+    syncClearForm();
+  });
+
+  clearBtn.addEventListener("click", () => {
+    field.value = "";
+    syncFieldClearButtons();
+    field.focus();
+    syncClearForm();
+    reflectDisabled();
+    schedule();
+  });
+}
 
 $("pattern").addEventListener("input", (e) => {
   e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
@@ -173831,6 +173957,7 @@ function syncHead() {
   const v = letters.value;
   $("clear").hidden = !v;
   $("headRack").textContent = v ? [...v].join(" ") : "no letters yet";
+  syncFieldClearButtons();
   syncClearForm();
 }
 

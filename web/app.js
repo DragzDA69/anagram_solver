@@ -5,6 +5,22 @@ const form = $("form");
 const letters = $("letters");
 const results = $("results");
 const status = $("status");
+const clearFields = [
+  { field: "exclude", clear: "clear-exclude" },
+  { field: "length", clear: "clear-length" },
+  { field: "min", clear: "clear-min" },
+  { field: "max", clear: "clear-max" },
+  { field: "limit", clear: "clear-limit" },
+  { field: "pattern", clear: "clear-pattern" },
+];
+
+function syncFieldClearButtons() {
+  for (const { field, clear } of clearFields) {
+    const input = $(field);
+    const btn = $(clear);
+    if (input && btn) btn.hidden = input.value.trim() === "";
+  }
+}
 
 let view = "grouped";
 /* Lengths the reader has collapsed. Results re-render on every keystroke,
@@ -51,6 +67,7 @@ function resetForm() {
   $("toggleAll").textContent = "{{btn_collapse_all}}";
   for (const toast of $("toasts").children) clearTimeout(toast.dismiss);
   $("toasts").replaceChildren();
+  syncFieldClearButtons();
   reflectDisabled();
   syncHead();
   flash(initialStatus);
@@ -68,17 +85,66 @@ letters.addEventListener("input", () => {
     const removed = before.length - clean.length;
     letters.setSelectionRange(start - removed, start - removed);
   }
+  syncMaxLength();
   syncHead();
   schedule();
+});
+
+$("wildcard").addEventListener("pointerdown", (event) => {
+  if (event.button === 0) event.preventDefault();
+});
+
+$("wildcard").addEventListener("click", () => {
+  letters.setRangeText("?", letters.selectionStart, letters.selectionEnd, "end");
+  letters.focus();
+  letters.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
 $("clear").addEventListener("click", () => {
   letters.value = "";
   $("clear").hidden = true;
   letters.focus();
+  syncMaxLength();
   syncHead();
   solve();
 });
+
+function syncMaxLength() {
+  const max = $("max");
+  max.value = letters.value
+    ? Math.min(letters.value.length, Number(max.max))
+    : max.defaultValue;
+}
+
+for (const { field: id, clear: clearId } of clearFields) {
+  const field = $(id);
+  const clearBtn = $(clearId);
+
+  if (!field || !clearBtn) continue;
+
+  field.addEventListener("input", () => {
+    if (id === "pattern") {
+      field.value = field.value.toLowerCase().replace(/[^a-z.?]/g, "");
+    }
+    if (id === "exclude") {
+      field.value = field.value.toLowerCase().replace(/[^a-z]/g, "");
+    }
+    if (id === "length") {
+      field.value = field.value.replace(/[^0-9,\s]/g, "");
+    }
+    syncFieldClearButtons();
+    syncClearForm();
+  });
+
+  clearBtn.addEventListener("click", () => {
+    field.value = "";
+    syncFieldClearButtons();
+    field.focus();
+    syncClearForm();
+    reflectDisabled();
+    schedule();
+  });
+}
 
 $("pattern").addEventListener("input", (e) => {
   e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
@@ -139,6 +205,7 @@ function syncHead() {
   const v = letters.value;
   $("clear").hidden = !v;
   $("headRack").textContent = v ? [...v].join(" ") : "no letters yet";
+  syncFieldClearButtons();
   syncClearForm();
 }
 

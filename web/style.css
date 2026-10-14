@@ -267,6 +267,15 @@ input[type=text], input[type=number], select {
   padding: 9px 11px;
   font: inherit;
 }
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 /* Nothing styled this before, so the placeholder sat at the browser default --
    a mid grey close to the text you type over it. The opacity is set explicitly
    rather than left alone: Firefox applies its own, so leaving it out makes the
@@ -282,14 +291,14 @@ input:focus, select:focus, button:focus-visible {
 }
 
 .letters-field { display: block; margin-bottom: 20px; }
-.letters-field .field { position: relative; }
+.letters-field .field, .ctl .field { position: relative; }
 #letters {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 26px;
   letter-spacing: 0.3em;
   padding: 12px 14px;
-  /* room for the clear button, so long racks do not run under it */
-  padding-right: 58px;
+  /* Leave room for both input buttons. */
+  padding-right: 98px;
   text-transform: lowercase;
 }
 
@@ -310,9 +319,22 @@ input:focus, select:focus, button:focus-visible {
   color: var(--ink-faint);
   cursor: pointer;
 }
+#wildcard {
+  font: inherit;
+  font-size: 22px;
+  font-weight: 600;
+}
+.letters-field .field:has(#clear:not([hidden])) #wildcard { right: 50px; }
+.clearbtn.small {
+  width: 28px;
+  height: 28px;
+  right: 8px;
+}
 .clearbtn svg { display: block; width: 20px; height: 20px; }
+.clearbtn.small svg { width: 16px; height: 16px; }
 .clearbtn:hover { background: var(--panel-2); color: var(--ink); }
 .clearbtn:active { transform: translateY(-50%) scale(0.92); }
+.clearbtn.small:active { transform: translateY(-50%) scale(0.92); }
 
 .controls {
   margin-top: 14px;

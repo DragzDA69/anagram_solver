@@ -20,9 +20,9 @@
 
   <p style="margin-top:10px;">
     <img src="docs/web-page.png" alt="The web page: board letters, options, and grouped results"
-         style="max-width:100%;max-height:480px;height:auto;vertical-align:top">
+         style="max-width:500px;max-height:480px;height:auto;vertical-align:top">
     <img src="docs/mobile-layout.png" alt="Mobile layout"
-         style="max-width:100%;max-height:480px;height:auto;vertical-align:top">
+         style="max-width:247px;max-height:480px;height:auto;vertical-align:top">
   </p>
 </div>
 
@@ -40,7 +40,7 @@ Letter combinations are checked against the [Enhanced North American Benchmark L
 ### Quick start
 
 ```bash
-python main.py run          # web page at http://127.0.0.1:8000
+python main.py run            # web page at http://127.0.0.1:8000
 python main.py solve "he?lpf" # solve in the terminal
 ```
 
@@ -52,13 +52,15 @@ To update the bundled dictionary, run:
 python main.py update
 ```
 
-This downloads the complete ENABLE1 list and rebuilds the standalone HTML page.
-Use `-d` / `--dictionary` for just the word list, or `-b` / `--build` for just
-the HTML build (no internet needed). Internet is needed only for dictionary downloads,
-not for solving. All word lengths are saved, and min/max options control the results.
-The dictionary has no fixed word-length ceiling. The web page's Max field
-defaults to 15, and its Min and Max fields allow values up to 50. Set Min,
-Max, or Word lengths to restrict your search.
+This downloads the complete **ENABLE1** list and rebuilds the standalone HTML page.
+Use `-d` / `--dictionary` for just the word list, or `-b` / `--build` for just the HTML build (no internet needed). 
+Internet is needed only for dictionary downloads, not for solving. 
+All word lengths are saved, and `Min`/`Max` options control the results.
+
+The dictionary has no fixed word-length ceiling. 
+The web page's `Max` field defaults to 15, and its `Min` and `Max` fields allow values up to `50`. 
+Set `Min`, `Max`, or `Word lengths` to restrict your search.
+
 Restart a running local server to reload the dictionary. For a local dictionary file, use
 `python main.py update --src enable1.txt`.
 
@@ -67,7 +69,7 @@ Restart a running local server to reload the dictionary. For a local dictionary 
 ### Web page
 
 ```bash
-python server.py            # or: python main.py run
+python server.py              # or: python main.py run
 ```
 
 Opens `http://127.0.0.1:8000` and solves as you type. 
@@ -77,8 +79,11 @@ Binds to localhost only, standard library only, nothing downloaded at runtime.
 <img src="docs/results.png" alt="Clicking a word copies it to the clipboard" width="620">
 
 Clicking a word copies it to the clipboard, and each length group collapses —
-**Collapse All** beside the hint folds or unfolds every group at once. The ×
-inside the input clears it.
+**Collapse All** beside the hint folds or unfolds every group at once.
+Each text or number input has an × that appears when it contains a value and
+clears that field. The **?** button beside the anagram's × inserts a wildcard
+at the cursor (or replaces selected text), keeping the cursor just after it
+so you can continue typing. Adding a wildcard also updates Max length.
 
 **Clear** beside Solve resets the entire form and results after confirmation.
 
@@ -87,7 +92,8 @@ inside the input clears it.
 | Key | |
 | :-- | :-- |
 | <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restart — reloads `ui.py`, `main.py` and the word list |
-| <kbd>Ctrl</kbd>+<kbd>O</kbd> | The same, and reopen the page in a browser |
+| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restart — reloads `ui.py`, `main.py` and the word list |
+| <kbd>Ctrl</kbd>+<kbd>O</kbd> | Open - restarts server, and reopen the page in a browser |
 | <kbd>Ctrl</kbd>+<kbd>C</kbd> | Stop |
 
 ---
@@ -176,6 +182,11 @@ that happens to spell one is still reachable as `python main.py solve open`.
 Case does not matter anywhere: `-x QXZ` and `-x qxz` are the same, as are the
 board letters. On the web page, `--pattern` sits in its own collapsed section
 under Options, since it is the one you reach for least.
+
+On the web page, Max length updates whenever the anagram changes, counting
+`?` wildcards as tiles and keeping the existing upper limit of 50. You can
+adjust Max manually until the next anagram edit; clearing the anagram restores
+the default of 15.
 
 Command messages use green for success, yellow/orange for warnings, and red for
 errors; informational text uses the terminal's normal color. Redirected output
