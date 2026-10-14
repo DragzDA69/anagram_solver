@@ -41,6 +41,22 @@ OUT = HERE / "index.html"
 STYLESHEET_TAG = '<link rel="stylesheet" href="/style.css">'
 SCRIPT_TAG = '<script src="/app.js"></script>'
 ICON_URL = "/icon.png"
+DOCTYPE = "<!doctype html>"
+
+# Stamped at the top of the output. A generated file sitting in the repo root
+# looks exactly like a source file, and an edit made here is destroyed by the
+# next build without warning -- so the file says so itself.
+BANNER = """<!--
+  GENERATED FILE -- DO NOT EDIT.
+
+  Built by build_standalone.py from:
+      web/index.html   markup        web/app.js     UI code
+      web/style.css    styles        web/solver.js  solver
+      ui.py            every label, hint and timing
+
+  Edit those, then run:  python build_standalone.py
+-->
+"""
 
 
 def front_code(words: list[str]) -> str:
@@ -66,7 +82,7 @@ def main() -> None:
     args = ap.parse_args()
 
     page = TEMPLATE.read_text(encoding="utf-8")
-    for tag in (STYLESHEET_TAG, SCRIPT_TAG, ICON_URL):
+    for tag in (STYLESHEET_TAG, SCRIPT_TAG, ICON_URL, DOCTYPE):
         if tag not in page:
             raise SystemExit("{} no longer contains {}".format(TEMPLATE, tag))
 
@@ -120,6 +136,8 @@ def main() -> None:
     page = page.replace(STYLESHEET_TAG, "<style>" + styles + "</style>", 1)
     page = page.replace(SCRIPT_TAG, scripts, 1)
     page = page.replace(ICON_URL, icon)   # favicon and the mark beside the title
+    # The banner goes in last, so nothing above can scan it for tags.
+    page = page.replace(DOCTYPE, DOCTYPE + "\n" + BANNER, 1)
 
     args.out.write_text(page, encoding="utf-8", newline="\n")
 

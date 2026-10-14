@@ -207,7 +207,7 @@ function render(data) {
       const h = document.createElement("summary");
       h.innerHTML = `<b>${g.length} letters</b> <i>${g.count.toLocaleString()}`
         + `${g.words.length < g.count ? `, showing ${g.words.length}` : ""}</i>`
-        + `<span class="rule"></span><span class="chev">&#9662;</span>`;
+        + `<span class="rule"></span><span class="chev">&#8595;</span>`;
 
       const box = document.createElement("div");
       box.className = "words";

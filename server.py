@@ -92,6 +92,28 @@ def keyboard_listener(events: "queue.Queue", stop: threading.Event) -> None:
             events.put("stop")
 
 
+def warn_if_standalone_stale() -> None:
+    """Say so when index.html is older than anything it is built from.
+
+    The served page reads web/ and ui.py live; the standalone is a build output
+    and does not. Editing copy and seeing it locally while GitHub Pages serves
+    the old wording is a trap worth one line of warning.
+    """
+    built = HERE / "index.html"
+    if not built.exists():
+        return
+    sources = [
+        WEB / "index.html", WEB / "style.css", WEB / "app.js", WEB / "solver.js",
+        WEB / "icon-small.png", HERE / "ui.py", WORDLIST,
+    ]
+    stamp = built.stat().st_mtime
+    stale = sorted(p.name for p in sources if p.exists() and p.stat().st_mtime > stamp)
+    if stale:
+        print("note: index.html is older than {} -- run "
+              "'python build_standalone.py' before pushing".format(", ".join(stale)),
+              file=sys.stderr, flush=True)
+
+
 def reload_sources() -> None:
     """Pick up edits to the solver and the shared copy without a fresh process.
 
@@ -287,6 +309,7 @@ def run(argv=None) -> None:
             # keypress; shutdown() is what stops it, and must come from elsewhere.
             threading.Thread(target=httpd.serve_forever, daemon=True).start()
 
+            warn_if_standalone_stale()
             print("Anagram Solver  ->  {}".format(url), flush=True)
             print("{:,} words loaded. {}".format(
                 size,

@@ -12,7 +12,7 @@ Runs as a local web page or from the command line — off the same solver.
 <img src="https://img.shields.io/badge/dependencies-none-6ea8fe" alt="No dependencies">
 <img src="https://img.shields.io/badge/standalone-works%20offline-6ea8fe" alt="Works offline">
 
-<span style="padding-top:10px;display:flex;justify-content:center">
+<br>
 
 <img src="docs/web-page.png" alt="The web page: board letters, options, and grouped results" width="600">
 
@@ -44,7 +44,8 @@ standard library only, nothing downloaded at runtime. `--port` moves it,
 
 <img src="docs/results.png" alt="Clicking a word copies it to the clipboard" width="620">
 
-Clicking a word copies it to the clipboard. Each length group collapses.
+Clicking a word copies it to the clipboard, and each length group collapses.
+The × inside the input clears it.
 
 #### While it runs
 
@@ -70,9 +71,22 @@ python build_standalone.py
 
 rebuilds it from the very same page the server serves — `web/index.html`,
 `style.css` and `app.js` — with the stylesheet, the icon, the word list and
-`web/solver.js` inlined into it (665 KB, ~25 ms to start). There is no second
-template, so the two cannot drift apart. Edit `web/`, never the generated
-`index.html`.
+`web/solver.js` inlined into it (679 KB, ~25 ms to start). There is no second
+template, so the two cannot drift apart. **Edit `web/` and `ui.py`, never the
+generated `index.html`** — it carries a banner saying as much, and the next
+build overwrites anything typed into it.
+
+You should not have to run that build by hand. Two git hooks in `.githooks/`
+keep it honest: `pre-commit` rebuilds `index.html` and stages it into the same
+commit whenever a source changes, and `pre-push` refuses a push when what is in
+`HEAD` does not match its sources. They install with one command per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`server.py` also warns at startup, and after every restart, when `index.html` is
+older than anything it is built from.
 
 For a phone, GitHub Pages is easiest: **Settings → Pages**, source `main`, root
 folder. It is then live at `https://dragzda69.github.io/anagram_solver/`, which
@@ -116,7 +130,8 @@ that happens to spell one is still reachable as `python main.py solve open`.
 | `--flat` | One word per line, no headers — for piping |
 
 Case does not matter anywhere: `-x QXZ` and `-x qxz` are the same, as are the
-board letters.
+board letters. On the web page, `--pattern` sits in its own collapsed section
+under Options, since it is the one you reach for least.
 
 `python main.py -h` shows a banner, the commands and these options; each command
 has a page of its own too (`solve -h`, `run -h`, `open -h`). The web page exposes
@@ -149,4 +164,5 @@ rebuilding with `python build_wordlist.py`.
 | `wordlist.txt` | ENABLE1, 4–12 letters |
 | `build_wordlist.py` | Regenerates `wordlist.txt` |
 | `build_standalone.py` | Regenerates `index.html` |
+| `.githooks/` | Rebuilds the standalone on commit, verifies it on push |
 | `DICTIONARY.md` | Why ENABLE1, and how it was verified |

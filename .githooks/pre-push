@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Refuse to push a stale index.html.
+#
+# The pre-commit hook rebuilds it on an ordinary commit, but a merge commit or
+# a --no-verify commit never runs that hook. This is the backstop: whatever got
+# the file here, what leaves for GitHub Pages is checked against its sources.
+#
+# Installed by:  git config core.hooksPath .githooks
+# Skipped by:    git push --no-verify
+
+set -e
+
+if command -v python >/dev/null 2>&1; then
+  py=python
+elif command -v py >/dev/null 2>&1; then
+  py=py
+else
+  echo "pre-push: no python found, cannot verify index.html." >&2
+  exit 1
+fi
+
+# Build into a temp file rather than over the real one: a push must not leave
+# the working tree modified behind your back.
+tmp=$(mktemp)
+trap 'rm -f "$tmp" "$tmp.head" "$tmp.built"' EXIT
+PYTHONIOENCODING=utf-8 "$py" build_standalone.py --out "$tmp" >/dev/null
+
+# Line endings are stripped from both sides: the build writes LF, while the
+# committed blob carries CRLF under core.autocrlf. Only the content matters.
+git show HEAD:index.html 2>/dev/null | tr -d '\r' > "$tmp.head" || : > "$tmp.head"
+tr -d '\r' < "$tmp" > "$tmp.built"
+
+if ! diff -q "$tmp.head" "$tmp.built" >/dev/null 2>&1; then
+  echo "pre-push: index.html in HEAD does not match web/ and ui.py." >&2
+  echo "          run: python build_standalone.py" >&2
+  echo "          then commit the rebuilt index.html and push again." >&2
+  exit 1
+fi

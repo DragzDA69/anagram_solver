@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Rebuild index.html so a commit can never ship a stale standalone page.
+#
+# index.html is generated from web/ and ui.py. Editing a source and forgetting
+# the build is the one way the served page and the GitHub Pages page can
+# disagree, and it has happened repeatedly. So the build runs here instead of
+# being remembered.
+#
+# Installed by:  git config core.hooksPath .githooks
+# Skipped by:    git commit --no-verify
+
+set -e
+
+# Nothing in the build's inputs is staged, and the output is untouched? Then
+# there is nothing to rebuild, and the commit stays fast.
+staged=$(git diff --cached --name-only)
+case "$staged" in
+  *web/*|*ui.py*|*wordlist.txt*|*index.html*|*build_standalone.py*) ;;
+  *) exit 0 ;;
+esac
+
+if command -v python >/dev/null 2>&1; then
+  py=python
+elif command -v py >/dev/null 2>&1; then
+  py=py
+else
+  echo "pre-commit: no python found, cannot rebuild index.html." >&2
+  echo "            install python, or commit with --no-verify and build later." >&2
+  exit 1
+fi
+
+PYTHONIOENCODING=utf-8 "$py" build_standalone.py >/dev/null
+
+if ! git diff --quiet -- index.html; then
+  git add index.html
+  echo "pre-commit: index.html rebuilt from web/ and ui.py, and staged."
+fi

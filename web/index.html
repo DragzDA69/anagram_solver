@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{app_name}}</title>
 <link rel="icon" type="image/png" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -21,7 +22,7 @@
       <summary>
         <span>{{panel_search}}</span>
         <span class="rack" id="headRack"></span>
-        <span class="chev">&#9662;</span>
+        <span class="chev">&#8595;</span>
       </summary>
 
       <div class="panelbody">
@@ -32,7 +33,7 @@
             <input id="letters" name="letters" type="text" inputmode="latin"
                    placeholder="{{ph_letters}}" spellcheck="false" autofocus>
             <button type="button" id="clear" class="clearbtn"
-                    title="{{title_clear}}" aria-label="{{title_clear}}" hidden>&times;</button>
+                    title="{{title_clear}}" aria-label="{{title_clear}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
           </div>
           <span class="hint">{{hint_letters}}</span>
         </div>
@@ -56,13 +57,13 @@
 
             <label class="ctl" id="minWrap">
               <span class="label">{{label_min}}</span>
-              <input id="min" type="number" min="1" max="12" value="4">
+              <input id="min" type="number" min="1" max="15" value="4">
               <span class="hint">{{hint_min}}</span>
             </label>
 
             <label class="ctl" id="maxWrap">
               <span class="label">{{label_max}}</span>
-              <input id="max" type="number" min="1" max="12" placeholder="{{ph_max}}">
+              <input id="max" type="number" min="1" max="15" value="15" placeholder="{{ph_max}}">
               <span class="hint">{{hint_max}}</span>
             </label>
 
@@ -88,7 +89,9 @@
           <div class="optsrow">
             <label class="toggle">
               <input type="checkbox" id="exact">
-              <span>{{toggle_exact}} <em>{{toggle_exact_note}}</em></span>
+              <span>{{toggle_exact}} 
+                <em>{{toggle_exact_note}}</em>
+              </span>
             </label>
           </div>
         </details>

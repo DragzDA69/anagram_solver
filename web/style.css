@@ -6,6 +6,10 @@
   --ink: #e6e9f0;
   --ink-dim: #9aa3b5;
   --ink-faint: #6b7489;
+  --placeholder: #4d5360;
+  --arrow-stroke: 0.5px;   /* how heavy the ↓ / → disclosure arrows read */
+  --arrow-long: 1.2;       /* stretch along the arrow's own axis */
+  --arrow-wide: 1.18;      /* and across it */
   --accent: #6ea8fe;
   --accent-ink: #0d1117;
   --wild: #f0b45e;
@@ -22,6 +26,7 @@
     --ink: #1a1f2b;
     --ink-dim: #5a6479;
     --ink-faint: #8a93a6;
+    --placeholder: #b0b6c4;
     --accent: #2f6fe4;
     --accent-ink: #ffffff;
     --wild: #a96a12;
@@ -29,6 +34,10 @@
 }
 
 * { box-sizing: border-box; }
+
+/* The hidden attribute loses to any author `display` rule -- .clearbtn is a
+   grid -- so toggling it would otherwise do nothing at all. */
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -102,16 +111,23 @@ form {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 1em;
 }
 #panel[open] > summary .rack { display: none; }
 #panel > summary .chev {
   margin-left: auto;
   display: inline-block;
   color: var(--ink-faint);
-  font-size: 15px;
+  font-size: 16px;
+  line-height: 1;
+  /* collapsed it points left, back at the summary; open it points down */
+  transform: rotate(90deg) scale(var(--arrow-wide), var(--arrow-long));
+  -webkit-text-stroke: var(--arrow-stroke) currentColor;
   transition: transform 0.18s;
 }
-#panel[open] > summary .chev { transform: rotate(180deg); }
+#panel[open] > summary .chev {
+  transform: scale(var(--arrow-wide), var(--arrow-long));
+}
 .panelbody { padding: 0 20px 20px; }
 
 /* Options section inside the panel. */
@@ -124,7 +140,7 @@ form {
 .subopts > summary {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   padding: 2px 0;
   font-size: 12px;
   font-weight: 600;
@@ -139,13 +155,20 @@ form {
 .subopts > summary::-webkit-details-marker { display: none; }
 #opts > summary::before,
 .subopts > summary::before {
-  content: "\0025B8";
+  content: "\2193";   /* ↓ ; rotated to point right when collapsed */
   display: inline-block;
+  font-size: 15px;
+  line-height: 1;
   color: var(--ink-faint);
+  /* along the arrow's own axis, so it survives the rotation */
+  transform: rotate(-90deg) scale(var(--arrow-wide), var(--arrow-long));
+  -webkit-text-stroke: var(--arrow-stroke) currentColor;
   transition: transform 0.15s;
 }
 #opts[open] > summary::before,
-.subopts[open] > summary::before { transform: rotate(90deg); }
+.subopts[open] > summary::before {
+  transform: scale(var(--arrow-wide), var(--arrow-long));
+}
 
 /* Pattern lives in here: a second tier inside Options, indented a little
    so it reads as nested rather than as another top-level group. */
@@ -188,6 +211,15 @@ input[type=text], input[type=number], select {
   padding: 9px 11px;
   font: inherit;
 }
+/* Nothing styled this before, so the placeholder sat at the browser default --
+   a mid grey close to the text you type over it. The opacity is set explicitly
+   rather than left alone: Firefox applies its own, so leaving it out makes the
+   two browsers disagree about how faint this is. */
+::placeholder { color: var(--placeholder); opacity: 0.7; }
+/* The anagram input is the one you look straight at, so its placeholder
+   sits a step further back than the options' do. */
+#letters::placeholder { opacity: 0.6; }
+
 input:focus, select:focus, button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
@@ -201,7 +233,7 @@ input:focus, select:focus, button:focus-visible {
   letter-spacing: 0.3em;
   padding: 12px 14px;
   /* room for the clear button, so long racks do not run under it */
-  padding-right: 52px;
+  padding-right: 58px;
   text-transform: lowercase;
 }
 
@@ -213,19 +245,16 @@ input:focus, select:focus, button:focus-visible {
   transform: translateY(-50%);
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: 7px;
+  border-radius: 8px;
   color: var(--ink-faint);
-  font: inherit;
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: 0;
   cursor: pointer;
 }
+.clearbtn svg { display: block; width: 20px; height: 20px; }
 .clearbtn:hover { background: var(--panel-2); color: var(--ink); }
 .clearbtn:active { transform: translateY(-50%) scale(0.92); }
 
@@ -248,9 +277,24 @@ input:focus, select:focus, button:focus-visible {
 }
 .spacer { flex: 1; }
 
+
 .toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
 .toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
-.toggle em { color: var(--ink-faint); font-style: normal; font-size: 12px; }
+/* Label and note are flex items, so a note that will not fit beside the label
+   drops to the next line whole rather than breaking across two. */
+.toggle > span {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 7px;
+  row-gap: 2px;
+}
+.toggle em {
+  color: var(--ink-faint);
+  font-style: normal;
+  font-size: 12px;
+  white-space: nowrap;
+}
 
 .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .seg button {
@@ -304,11 +348,15 @@ button[type=submit] { background: var(--accent); color: var(--accent-ink); borde
 .group > summary .chev {
   flex: none;
   color: var(--ink-faint);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
+  transform: scale(var(--arrow-wide), var(--arrow-long));
+  -webkit-text-stroke: var(--arrow-stroke) currentColor;
   transition: transform 0.18s;
 }
-.group[open] > summary .chev { transform: rotate(180deg); }
+.group[open] > summary .chev {
+  transform: rotate(180deg) scale(var(--arrow-wide), var(--arrow-long));
+}
 .group > summary:hover .chev, .group > summary:hover b { color: var(--accent); }
 
 .words { display: flex; flex-wrap: wrap; gap: 6px; }

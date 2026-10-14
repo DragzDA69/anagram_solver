@@ -66,23 +66,23 @@ VALUES: dict[str, object] = {
     "hint_min": "Shortest word to look for",
 
     "label_max": "Max length",
-    "ph_max": "tiles",
-    "hint_max": "Defaults to tile count",
+    "ph_max": "letters",
+    "hint_max": "Defaults to letter count",
 
     "label_pattern": "Pattern",
     "ph_pattern": "..t..n",
     "hint_pattern": "Position filter, <kbd>.</kbd> = any letter, <kbd>?</kbd> = wildcard",
 
     "label_exclude": "Exclude letters",
-    "ph_exclude": "qxz",
+    "ph_exclude": "xyz",
     "hint_exclude": "Drop words using any of these",
 
     "label_limit": "Limit per group",
     "ph_limit": "all",
     "hint_limit": "0 or blank shows all",
 
-    "toggle_exact": "Big word only",
-    "toggle_exact_note": "uses every tile",
+    "toggle_exact": "Use Maximum Letters",
+    "toggle_exact_note": "word requires every letter to be used *",
 
     # -- controls ----------------------------------------------------------
     "view_grouped": "Grouped",
