@@ -1,24 +1,16 @@
 <div align="center">
-  <img src="icon.png" alt="" width="84"/>
-  <div style="margin-bottom:7px">
-    <div style="font-weight:600;font-size:35px;">
-      Anagram Solver
-    </div>
-    <div style="font-weight:500;font-style:italic;font-size:17px;">
-      Developed by Dragz
-    </div>
-    <div style="font-weight:500;font-size:22px;margin-top:10px">
-      Find every word your letters can spell!
-    </div>
-  </div>
+  <img src="icon.png" alt="Anagram Solver icon" width="84">
+  <h1>Anagram Solver</h1>
+  <p><em>Developed by Dragz</em></p>
+  <h3>Find every word your letters can spell!</h3>
 
-  <img src="https://img.shields.io/badge/python-3.8%2B-6ea8fe" alt="Python 3.8+">
-  <img src="https://img.shields.io/badge/dependencies-none-6ea8fe" alt="No dependencies">
-  <img src="https://img.shields.io/badge/standalone-works%20offline-6ea8fe" alt="Works offline">
+  <p>
+    <img src="https://img.shields.io/badge/python-3.8%2B-6ea8fe" alt="Python 3.8+">
+    <img src="https://img.shields.io/badge/dependencies-none-6ea8fe" alt="No dependencies">
+    <img src="https://img.shields.io/badge/standalone-works%20offline-6ea8fe" alt="Works offline">
+  </p>
 
-  <br>
-
-  <p style="margin-top:10px;">
+  <p>
     <img src="docs/web-page.png" alt="The web page: board letters, options, and grouped results"
          width="500" height="457">
     <img src="docs/mobile-layout.png" alt="Mobile layout"
@@ -98,11 +90,7 @@ so you can continue typing. Adding a wildcard also updates Max length.
 
 ---
 
-<div style="font-size:20px;font-weight:600;margin-bottom:10px">
-  <span>Mobile & Web Deployments </span>
-  <span style="font-size:16px;font-weight:500;font-style:italic;">(no Python or server host)</span>
-</div>
-
+### Mobile & Web Deployments <em>(no Python or server host)</em>
 
 `index.html` is the whole solver in one file — dictionary, code, styles and icon all inlined — so it needs no server, no install and no network once loaded.
 
