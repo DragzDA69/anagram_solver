@@ -12,9 +12,9 @@
 
   <p>
     <img src="docs/web-page.png" alt="The web page: board letters, options, and grouped results"
-         width="500" height="457">
+         width="580" height="457">
     <img src="docs/mobile-layout.png" alt="Mobile layout"
-         width="247" height="456">
+         width="224" height="456">
   </p>
 
   <h3>
