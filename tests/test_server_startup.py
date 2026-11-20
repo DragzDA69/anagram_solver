@@ -89,7 +89,7 @@ class ServerStartupTests(unittest.TestCase):
         try:
             with patch.object(server.ui, "VALUES", {}), \
                     patch.object(server, "_ui_stamp", None):
-                for route in ("/", "/app.js", "/style.css"):
+                for route in ("/", "/app.js", "/style.css", "/bootstrap-grid.min.css"):
                     with urllib.request.urlopen(
                         "http://127.0.0.1:{}{}".format(httpd.server_port, route), timeout=5,
                     ) as response:
@@ -99,6 +99,10 @@ class ServerStartupTests(unittest.TestCase):
                         if route == "/":
                             self.assertIn("Developed by Dragz", body)
                             self.assertIn('id="clearDialog"', body)
+                            self.assertIn('href="/bootstrap-grid.min.css"', body)
+                        if route == "/bootstrap-grid.min.css":
+                            self.assertIn("Bootstrap Grid v5.3.3", body)
+                            self.assertEqual(response.headers.get_content_type(), "text/css")
         finally:
             httpd.shutdown()
             httpd.server_close()

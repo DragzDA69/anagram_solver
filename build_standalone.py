@@ -26,6 +26,8 @@ import ui  # noqa: E402
 from cli.messages import ArgumentParser, fail, success  # noqa: E402
 
 TEMPLATE = HERE / "web" / "index.html"
+# Bootstrap's grid build, vendored: inlined as-is, never templated.
+BOOTSTRAP = HERE / "web" / "bootstrap-grid.min.css"
 STYLES = HERE / "web" / "style.css"
 APP = HERE / "web" / "app.js"
 SOLVER = HERE / "web" / "solver.js"
@@ -38,6 +40,7 @@ OUT = HERE / "index.html"
 # The served page's own tags are what gets swapped out, so there are no
 # build markers to keep in sync -- and nothing for a browser to choke on if
 # web/index.html is opened directly.
+BOOTSTRAP_TAG = '<link rel="stylesheet" href="/bootstrap-grid.min.css">'
 STYLESHEET_TAG = '<link rel="stylesheet" href="/style.css">'
 SCRIPT_TAG = '<script src="/app.js"></script>'
 ICON_URL = "/icon.png"
@@ -53,6 +56,7 @@ BANNER = """<!--
       web/index.html   markup        web/app.js     UI code
       web/style.css    styles        web/solver.js  solver
       ui.py            every label, hint and timing
+      web/bootstrap-grid.min.css   Bootstrap's grid (vendored)
 
   Edit those, then run:  python build_standalone.py
 -->
@@ -82,11 +86,12 @@ def _build(argv=None) -> None:
     args = ap.parse_args(argv)
 
     page = TEMPLATE.read_text(encoding="utf-8")
-    for tag in (STYLESHEET_TAG, SCRIPT_TAG, ICON_URL, DOCTYPE):
+    for tag in (BOOTSTRAP_TAG, STYLESHEET_TAG, SCRIPT_TAG, ICON_URL, DOCTYPE):
         if tag not in page:
             fail("Could not rebuild the page: {} is missing {}.".format(TEMPLATE.name, tag))
 
     try:
+        bootstrap = BOOTSTRAP.read_text(encoding="utf-8")
         styles = STYLES.read_text(encoding="utf-8")
         app = APP.read_text(encoding="utf-8")
         solver = SOLVER.read_text(encoding="utf-8")
@@ -103,8 +108,9 @@ def _build(argv=None) -> None:
     except KeyError as exc:
         fail("Could not rebuild the page because a UI label is missing.\nDetails: {}".format(exc))
 
-    for name, text in (("stylesheet", styles), ("app.js", app), ("solver.js", solver)):
-        if "</" in text and name == "stylesheet":
+    for name, text in (("Bootstrap stylesheet", bootstrap), ("stylesheet", styles),
+                       ("app.js", app), ("solver.js", solver)):
+        if "</" in text and name.endswith("stylesheet"):
             fail("Could not rebuild the page: {} contains invalid HTML closing text.".format(name))
         if "</script" in text.lower():
             fail("Could not rebuild the page: {} contains invalid script closing text.".format(name))
@@ -134,6 +140,7 @@ def _build(argv=None) -> None:
         + "<script>" + solver + "</script>"
         + "<script>" + app + "</script>"
     )
+    page = page.replace(BOOTSTRAP_TAG, "<style>" + bootstrap + "</style>", 1)
     page = page.replace(STYLESHEET_TAG, "<style>" + styles + "</style>", 1)
     page = page.replace(SCRIPT_TAG, scripts, 1)
     page = page.replace(ICON_URL, icon)   # favicon and the mark beside the title

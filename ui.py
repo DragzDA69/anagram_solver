@@ -49,7 +49,7 @@ VALUES: dict[str, object] = {
 
     # -- panels ------------------------------------------------------------
     "panel_search": "Search",
-    "panel_options": "Options",
+    "panel_word_length": "Word Length",
 
     # -- the letters field -------------------------------------------------
     "label_letters": "Anagram Input",
@@ -69,10 +69,6 @@ VALUES: dict[str, object] = {
     "label_max": "Max length",
     "ph_max": "letters",
     "hint_max": "Defaults to letter count",
-
-    "label_pattern": "Pattern",
-    "ph_pattern": "..t..n",
-    "hint_pattern": "Position filter, <kbd>.</kbd> = any letter, <kbd>?</kbd> = wildcard",
 
     "label_exclude": "Exclude letters",
     "ph_exclude": "xyz",

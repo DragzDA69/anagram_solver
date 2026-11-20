@@ -125,7 +125,7 @@ window.LOCAL_SOLVE = function (body) {
   const lengths = chooseLengths({
     exact: !!body.exact,
     length: String(body.length || "").trim(),
-    min: asInt(body.min, 4),
+    min: asInt(body.min, 2),   // the page's Min default; the CLI keeps 4
     max: asInt(body.max, 0),
   }, tiles);
 

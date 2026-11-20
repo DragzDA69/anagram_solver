@@ -64,6 +64,7 @@ class LocalHTTPServer(ThreadingHTTPServer):
 STATIC = {
     "/": (WEB / "index.html", "text/html; charset=utf-8", True),
     "/index.html": (WEB / "index.html", "text/html; charset=utf-8", True),
+    "/bootstrap-grid.min.css": (WEB / "bootstrap-grid.min.css", "text/css; charset=utf-8", False),
     "/style.css": (WEB / "style.css", "text/css; charset=utf-8", True),
     "/app.js": (WEB / "app.js", "text/javascript; charset=utf-8", True),
     "/icon.png": (HERE / "icon.png", "image/png", False),
@@ -293,7 +294,7 @@ def run_solve(req: dict) -> dict:
     args = SimpleNamespace(
         exact=bool(req.get("exact")),
         length=str(req.get("length", "")).strip(),
-        min_len=as_int("min", 4),
+        min_len=as_int("min", 2),  # the page's Min default; the CLI keeps 4
         max_len=as_int("max", 0) or None,
     )
     lengths, notes = choose(args, tiles, by_length)

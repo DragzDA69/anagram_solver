@@ -186,13 +186,13 @@ form {
 }
 .panelbody { padding: 0 20px 20px; }
 
-/* Options section inside the panel. */
-#opts {
+/* Exclude letters: always on show, full width, ruled off from the anagram. */
+.exclude-row {
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
-#opts > summary,
+
 .subopts > summary {
   display: flex;
   align-items: center;
@@ -207,9 +207,7 @@ form {
   user-select: none;
   list-style: none;
 }
-#opts > summary::-webkit-details-marker,
 .subopts > summary::-webkit-details-marker { display: none; }
-#opts > summary::before,
 .subopts > summary::before {
   content: "\2193";   /* ↓ ; rotated to point right when collapsed */
   display: inline-block;
@@ -221,21 +219,37 @@ form {
   -webkit-text-stroke: var(--arrow-stroke) currentColor;
   transition: transform 0.15s;
 }
-#opts[open] > summary::before,
 .subopts[open] > summary::before {
   transform: scale(var(--arrow-wide), var(--arrow-long));
 }
 
-/* Pattern lives in here: a second tier inside Options, indented a little
-   so it reads as nested rather than as another top-level group. */
+/* Word Length: the panel's one fold, indented a little so its fields read as
+   belonging to the heading above them. */
 .subopts {
   margin-top: 16px;
   padding-left: 12px;
   border-left: 1px solid var(--line);
 }
-.subopts > summary { color: var(--ink-faint); }
-.subopts > summary:hover { color: var(--ink-dim); }
-.subopts .controls { margin-top: 10px; }
+/* The Word Length fields are a Bootstrap row (see web/index.html): 2x2 below
+   576px, all four on one line above it. Two additions Bootstrap can't express: */
+
+/* 1. Below 768px a column can be too narrow for "Limit per group" on one line.
+      Every label gets room for two lines, text at the bottom (d-flex
+      align-items-end), so the inputs in a row stay level whichever wraps. */
+@media (max-width: 767.98px) {
+  .length-fields .label { min-height: 3em; }
+}
+
+/* 2. One field per line once two would hide the digits. An input needs 70px
+      to show two: borders 2 + left padding 11 + "00" 17 + the x padding 40.
+      Two to a line give each (viewport - 119px) / 2 -- the viewport less the
+      page, card, panel and fold padding (103px) and Bootstrap's 16px gutters
+      -- which is 70px at a 259px viewport. */
+@media (max-width: 258.98px) {
+  .length-fields > * { width: 100%; }
+  .length-fields .label { min-height: 0; }
+}
+
 .optsrow { margin-top: 14px; }
 
 .label {
@@ -292,6 +306,8 @@ input:focus, select:focus, button:focus-visible {
 
 .letters-field { display: block; margin-bottom: 20px; }
 .letters-field .field, .ctl .field { position: relative; }
+/* Keep typed text clear of the field's × (8px inset + 28px button + 4px). */
+.ctl .field input { padding-right: 40px; }
 #letters {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 26px;
@@ -336,12 +352,6 @@ input:focus, select:focus, button:focus-visible {
 .clearbtn:active { transform: translateY(-50%) scale(0.92); }
 .clearbtn.small:active { transform: translateY(-50%) scale(0.92); }
 
-.controls {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-  gap: 14px;
-}
 .ctl.off { opacity: 0.4; }
 
 .switches {
@@ -435,7 +445,7 @@ button.secondary-btn {
 .results { margin-top: 10px; }
 
 .group { margin-top: 18px; }
-/* A length group is a <details>, like the Search and Options panels, so it
+/* A length group is a <details>, like the Search and Word Length panels, so it
    opens and closes without script. The divider is a real element rather than
    ::after, which has to come last -- the chevron sits beyond it. */
 .group > summary {

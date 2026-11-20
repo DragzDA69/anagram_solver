@@ -1,2 +1,4 @@
 # index.html is built by build_standalone.py; never edit it by hand.
 /index.html linguist-generated=true
+# Bootstrap's grid build (v5.3.3, MIT), vendored so the offline page needs no CDN.
+/web/bootstrap-grid.min.css linguist-vendored=true

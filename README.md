@@ -55,7 +55,7 @@ Internet is needed only for dictionary downloads, not for solving.
 All word lengths are saved, and `Min`/`Max` options control the results.
 
 The dictionary has no fixed word-length ceiling. 
-The web page's `Max` field defaults to 15, and its `Min` and `Max` fields allow values up to `50`. 
+The web page's `Max` field starts at 0 and follows the anagram's length, and its `Min` and `Max` fields allow values up to `50`. 
 Set `Min`, `Max`, or `Word lengths` to restrict your search.
 
 Restart a running local server to reload the dictionary. For a local dictionary file, use
@@ -103,7 +103,7 @@ so you can continue typing. Adding a wildcard also updates Max length.
 python build_standalone.py
 ```
  
-rebuilds it from the very same page the server serves — `web/index.html`,`style.css` and `app.js` — with the stylesheet, the icon, the word list and `web/solver.js` inlined into it (about 782 KB with the full dictionary).
+rebuilds it from the very same page the server serves — `web/index.html`,`style.css` and `app.js` — with both stylesheets (`style.css` and the vendored `bootstrap-grid.min.css`), the icon, the word list and `web/solver.js` inlined into it (about 845 KB with the full dictionary).
 
 There is no second template, so the two cannot drift apart. **Edit `web/` and `ui.py`, never the
 generated `index.html`** — it carries a banner saying as much, and the next
@@ -173,17 +173,21 @@ that happens to spell one is still reachable as `python main.py solve open`.
 | `--flat` | One word per line, no headers — for piping |
 
 Case does not matter anywhere: `-x QXZ` and `-x qxz` are the same, as are the
-board letters. On the web page, `--pattern` sits in its own collapsed section
-under Options, since it is the one you reach for least.
+board letters. `--pattern` is command-line only; the web page has no Pattern
+field. On the web page, Exclude letters sits directly under the anagram, and
+Word lengths, Min length, Max length, Limit per group and Use Maximum Letters
+sit together in a collapsible **Word Length** section below it (collapsed at
+first on narrow screens). Min defaults to 2 rather than the command line's 4.
 
-On the web page, Max length updates whenever the anagram changes, counting
-`?` wildcards as tiles and keeping the existing upper limit of 50. You can
-adjust Max manually until the next anagram edit; clearing the anagram restores
-the default of 15.
+On the web page, Max length starts at 0 and updates whenever the anagram or
+Exclude letters change: it counts every tile, `?` wildcards included, minus the
+anagram letters that Exclude names, and keeps the existing upper limit of 50.
+You can adjust Max manually until the next such edit; clearing the anagram
+returns it to 0, which the solver treats as no cap.
 When both Min and Max are filled in, Min cannot exceed Max and Max cannot fall
 below Min; equal values are allowed. Leaving either field blank removes this
-cross-field restriction. If an anagram edit lowers Max below Min, Min also drops
-to match the new Max.
+cross-field restriction, and so does a Max of 0. If an anagram or Exclude edit
+lowers Max below Min, Min also drops to match the new Max.
 
 Command messages use green for success, yellow/orange for warnings, and red for
 errors; informational text uses the terminal's normal color. Redirected output
@@ -212,7 +216,7 @@ file unchanged. [DICTIONARY.md](DICTIONARY.md) covers why this list was chosen.
 | `server.py` | Local web server for the desktop page |
 | `ui.py` | Every label, message and UI timing both pages use |
 | `cli/` | Styled help pages and the shared update spinner |
-| `web/` | The page itself: `index.html`, `style.css`, `app.js`, plus `solver.js` for the offline build |
+| `web/` | The page itself: `index.html`, `style.css`, `app.js`, plus `solver.js` for the offline build and `bootstrap-grid.min.css` (Bootstrap 5.3.3's grid, vendored so the page needs no CDN) |
 | `index.html` | Standalone single-file solver — no server, works offline |
 | `icon.png` | The app icon; `web/icon-small.png` is the embedded copy |
 | `wordlist.txt` | Complete ENABLE1 dictionary, all word lengths |

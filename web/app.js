@@ -11,7 +11,6 @@ const clearFields = [
   { field: "min", clear: "clear-min" },
   { field: "max", clear: "clear-max" },
   { field: "limit", clear: "clear-limit" },
-  { field: "pattern", clear: "clear-pattern" },
 ];
 
 function syncFieldClearButtons() {
@@ -110,25 +109,34 @@ $("clear").addEventListener("click", () => {
   solve();
 });
 
+/** Tiles a word could actually use: every letter and wildcard in the rack,
+    less the rack letters named in Exclude, since any word using one of those
+    is dropped. A wildcard is never excluded -- it can stand for another letter. */
+function usableTiles() {
+  const banned = $("exclude").value;
+  return [...letters.value].filter((ch) => !banned.includes(ch)).length;
+}
+
+/** Max follows the rack: 0 with no letters, otherwise the usable tile count. */
 function syncMaxLength() {
   const max = $("max");
-  max.value = letters.value
-    ? Math.min(letters.value.length, Number(max.max))
-    : max.defaultValue;
+  max.value = Math.min(usableTiles(), Number(max.max));
   syncLengthBounds("min");
 }
 
 function syncLengthBounds(changed) {
   const min = $("min");
   const max = $("max");
+  // A Max of 0 means "no letters yet", and the solver reads it as no cap, so
+  // it must not drag Min down to 0 with it.
   const bothProvided = Number.isFinite(min.valueAsNumber)
-    && Number.isFinite(max.valueAsNumber);
+    && max.valueAsNumber > 0;
   if (bothProvided && min.valueAsNumber > max.valueAsNumber) {
     if (changed === "min") min.value = max.value;
     else max.value = min.value;
   }
   min.max = bothProvided ? Math.min(50, max.valueAsNumber) : 50;
-  max.min = bothProvided ? Math.max(1, min.valueAsNumber) : 1;
+  max.min = bothProvided ? Math.max(1, min.valueAsNumber) : 0;
 }
 
 for (const { field: id, clear: clearId } of clearFields) {
@@ -139,11 +147,9 @@ for (const { field: id, clear: clearId } of clearFields) {
 
   field.addEventListener("input", () => {
     if (id === "min" || id === "max") syncLengthBounds(id);
-    if (id === "pattern") {
-      field.value = field.value.toLowerCase().replace(/[^a-z.?]/g, "");
-    }
     if (id === "exclude") {
       field.value = field.value.toLowerCase().replace(/[^a-z]/g, "");
+      syncMaxLength();
     }
     if (id === "length") {
       field.value = field.value.replace(/[^0-9,\s]/g, "");
@@ -155,6 +161,7 @@ for (const { field: id, clear: clearId } of clearFields) {
   clearBtn.addEventListener("click", () => {
     field.value = "";
     if (id === "min" || id === "max") syncLengthBounds();
+    if (id === "exclude") syncMaxLength();
     syncFieldClearButtons();
     field.focus();
     syncClearForm();
@@ -162,10 +169,6 @@ for (const { field: id, clear: clearId } of clearFields) {
     schedule();
   });
 }
-
-$("pattern").addEventListener("input", (e) => {
-  e.target.value = e.target.value.toLowerCase().replace(/[^a-z.?]/g, "");
-});
 
 $("exclude").addEventListener("input", (e) => {
   e.target.value = e.target.value.toLowerCase().replace(/[^a-z]/g, "");
@@ -199,7 +202,7 @@ document.querySelectorAll(".seg button").forEach((b) => {
   });
 });
 
-for (const id of ["length", "min", "max", "pattern", "exclude", "limit", "exact"]) {
+for (const id of ["length", "min", "max", "exclude", "limit", "exact"]) {
   $(id).addEventListener("input", () => { reflectDisabled(); schedule(); });
 }
 
@@ -256,7 +259,6 @@ async function solve() {
     length: $("length").value.trim(),
     min: $("min").value.trim(),
     max: $("max").value.trim(),
-    pattern: $("pattern").value.trim(),
     exclude: $("exclude").value.trim(),
     limit: $("limit").value.trim(),
     exact: $("exact").checked,
@@ -491,8 +493,8 @@ function syncBrandLayout() {
     syncBrandLayout();
   }).observe(document.querySelector(".bar"));
   document.fonts.ready.then(syncBrandLayout);
-  /* Options start open on desktop, collapsed under the "md" width (768px). */
-  if (window.matchMedia("(max-width: 767px)").matches) $("opts").open = false;
+  /* Word Length starts open on desktop, collapsed under the "md" width (768px). */
+  if (window.matchMedia("(max-width: 767px)").matches) $("lengthOpts").open = false;
   defaultPanels = [...form.querySelectorAll("details")].map((panel) => ({
     panel, open: panel.open,
   }));
